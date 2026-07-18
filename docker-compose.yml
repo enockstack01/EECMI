@@ -1,0 +1,85 @@
+# ─────────────────────────────────────────────────────────────
+#  EECMI Platform — DEVELOPMENT compose
+#
+#  Usage:
+#    docker compose up --build          # first run
+#    docker compose up                  # subsequent runs
+#    docker compose down                # stop
+#    docker compose down -v             # stop + wipe postgres data
+# ─────────────────────────────────────────────────────────────
+
+services:
+
+  # ── PostgreSQL ──────────────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    container_name: eecmi_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB:       ${DB_NAME:-eecmi}
+      POSTGRES_USER:     ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
+    ports:
+      - "${DB_PORT:-5432}:5432"          # exposed so you can use pgAdmin / psql locally
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-eecmi}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # ── Express API ─────────────────────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development          # uses nodemon
+    container_name: eecmi_api
+    restart: unless-stopped
+    env_file: .env                 # load EMAIL_*, JWT_SECRET, etc.
+    environment:
+      NODE_ENV: development
+      PORT: 5000
+      # Override DATABASE_URL to use the 'db' service name (Docker network)
+      DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-password}@db:5432/${DB_NAME:-eecmi}
+      CLIENT_URL: http://localhost:3000
+    ports:
+      - "${PORT:-5000}:5000"
+    volumes:
+      - ./server:/app/server       # hot-reload: reflects local edits instantly
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # ── React Dev Server ─────────────────────────────────────────
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+      target: dev                  # CRA dev server with hot-reload
+    container_name: eecmi_client
+    restart: unless-stopped
+    environment:
+      # Points CRA's setupProxy.js at the 'api' service (Docker network)
+      REACT_APP_API_URL: http://api:5000
+      # File-watch polling — needed on Windows / macOS with Docker Desktop
+      CHOKIDAR_USEPOLLING: "true"
+      WATCHPACK_POLLING:   "true"
+      # HMR WebSocket must advertise the host machine's address to the browser
+      WDS_SOCKET_HOST: localhost
+      WDS_SOCKET_PORT: "3000"
+      HOST: "0.0.0.0"
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./client/src:/app/src      # hot-reload source
+      - ./client/public:/app/public
+    depends_on:
+      - api
+
+volumes:
+  postgres_data:
+    name: eecmi_postgres_data
