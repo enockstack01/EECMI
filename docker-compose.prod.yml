@@ -1,0 +1,66 @@
+# ─────────────────────────────────────────────────────────────
+#  EECMI Platform — PRODUCTION compose
+#
+#  Usage:
+#    docker compose -f docker-compose.prod.yml up --build -d
+#    docker compose -f docker-compose.prod.yml down
+# ─────────────────────────────────────────────────────────────
+
+services:
+
+  # ── PostgreSQL ──────────────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    container_name: eecmi_db_prod
+    restart: always
+    environment:
+      POSTGRES_DB:       ${DB_NAME:-eecmi}
+      POSTGRES_USER:     ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}      # must be set — no default in prod
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    # No ports exposed — only accessible inside the Docker network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-eecmi}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # ── Express API ─────────────────────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: eecmi_api_prod
+    restart: always
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD}@db:5432/${DB_NAME:-eecmi}
+      CLIENT_URL: ${CLIENT_URL:-http://localhost}
+    # Port NOT exposed to host — nginx proxies to it
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # ── Nginx + React Build ──────────────────────────────────────
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+      target: production            # compiles React → nginx serves static files
+    container_name: eecmi_client_prod
+    restart: always
+    ports:
+      - "80:80"                     # public HTTP
+      # - "443:443"                 # uncomment after adding SSL certs
+    depends_on:
+      - api
+
+volumes:
+  postgres_data_prod:
+    name: eecmi_postgres_data_prod
