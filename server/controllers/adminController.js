@@ -5,8 +5,26 @@ const Volunteer = require('../models/Volunteer');
 const Newsletter= require('../models/Newsletter');
 const NewsPost  = require('../models/NewsPost');
 const Resource  = require('../models/Resource');
-const Admin     = require('../models/Admin');
 const Partner   = require('../models/Partner');
+const { clerkClient } = require('../middleware/clerkAuth');
+
+const ROLES = ['super_admin', 'admin', 'editor', 'user'];
+
+const primaryEmail = (user) =>
+  user.emailAddresses?.find((e) => e.id === user.primaryEmailAddressId)?.emailAddress
+  || user.emailAddresses?.[0]?.emailAddress
+  || '';
+
+const toTeamRow = (user) => ({
+  id: user.id,
+  name: [user.firstName, user.lastName].filter(Boolean).join(' ') || user.username || primaryEmail(user),
+  email: primaryEmail(user),
+  imageUrl: user.imageUrl,
+  role: user.publicMetadata?.role || 'user',
+  banned: !!user.banned,
+  lastSignInAt: user.lastSignInAt,
+  createdAt: user.createdAt,
+});
 
 // ── helpers ──────────────────────────────────────────────────
 const paginate = (query) => {
@@ -39,10 +57,22 @@ exports.getDashboard = async (req, res) => {
         Partner.findAll({ order: [['createdAt', 'DESC']], limit: 5, attributes: ['id','name','email','organization','partnerType','status','createdAt'] }),
       ]);
 
+    let team = null;
+    if (req.role === 'super_admin') {
+      const { data: users, totalCount } = await clerkClient.users.getUserList({ limit: 200 });
+      const byRole = users.reduce((acc, u) => {
+        const role = u.publicMetadata?.role || 'user';
+        acc[role] = (acc[role] || 0) + 1;
+        return acc;
+      }, {});
+      team = { total: totalCount, byRole };
+    }
+
     res.json({
       success: true,
       stats: { contacts, prayers, volunteers, subscribers, newPosts, resources, partners },
       recent: { contacts: newContacts, prayers: recentPrayers, volunteers: recentVolunteers, partners: recentPartners },
+      team,
     });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Failed to load dashboard.' });
@@ -300,39 +330,40 @@ exports.deleteResource = async (req, res) => {
   }
 };
 
-// ── ADMIN USERS ──────────────────────────────────────────────
-exports.getAdmins = async (req, res) => {
+// ── TEAM (Clerk-backed, super_admin only) ─────────────────────
+exports.getTeam = async (req, res) => {
   try {
-    const admins = await Admin.findAll({ attributes: { exclude: ['password'] }, order: [['createdAt', 'DESC']] });
-    res.json({ success: true, data: admins });
+    const { data: users } = await clerkClient.users.getUserList({ limit: 200, orderBy: '-created_at' });
+    res.json({ success: true, data: users.map(toTeamRow) });
   } catch (err) {
-    res.status(500).json({ success: false, message: 'Failed to fetch admins.' });
+    res.status(500).json({ success: false, message: 'Failed to fetch team.' });
   }
 };
 
-exports.createAdmin = async (req, res) => {
+exports.updateTeamRole = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
-    if (!name || !email || !password)
-      return res.status(400).json({ success: false, message: 'Name, email, and password are required.' });
-    const exists = await Admin.findOne({ where: { email: email.toLowerCase() } });
-    if (exists) return res.status(409).json({ success: false, message: 'Email already in use.' });
-    const admin = await Admin.create({ name, email: email.toLowerCase(), password, role });
-    res.status(201).json({ success: true, data: { id: admin.id, name: admin.name, email: admin.email, role: admin.role } });
+    const { role } = req.body;
+    if (!ROLES.includes(role)) return res.status(400).json({ success: false, message: 'Invalid role.' });
+    if (req.params.userId === req.clerkUserId && role !== 'super_admin')
+      return res.status(400).json({ success: false, message: 'Cannot demote yourself.' });
+    const user = await clerkClient.users.updateUserMetadata(req.params.userId, { publicMetadata: { role } });
+    res.json({ success: true, data: toTeamRow(user) });
   } catch (err) {
-    res.status(500).json({ success: false, message: 'Failed to create admin.' });
+    res.status(500).json({ success: false, message: 'Failed to update role.' });
   }
 };
 
-exports.toggleAdmin = async (req, res) => {
+exports.toggleTeamBan = async (req, res) => {
   try {
-    const item = await Admin.findByPk(req.params.id);
-    if (!item) return res.status(404).json({ success: false, message: 'Not found.' });
-    if (item.id === req.admin.id) return res.status(400).json({ success: false, message: 'Cannot deactivate yourself.' });
-    await item.update({ isActive: !item.isActive });
-    res.json({ success: true, data: { id: item.id, isActive: item.isActive } });
+    if (req.params.userId === req.clerkUserId)
+      return res.status(400).json({ success: false, message: 'Cannot ban yourself.' });
+    const user = await clerkClient.users.getUser(req.params.userId);
+    const updated = user.banned
+      ? await clerkClient.users.unbanUser(req.params.userId)
+      : await clerkClient.users.banUser(req.params.userId);
+    res.json({ success: true, data: toTeamRow(updated) });
   } catch (err) {
-    res.status(500).json({ success: false, message: 'Update failed.' });
+    res.status(500).json({ success: false, message: 'Failed to update ban status.' });
   }
 };
 

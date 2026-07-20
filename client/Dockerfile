@@ -16,6 +16,8 @@ CMD ["npm", "start"]
 # ── Build stage: compile static assets ────────
 FROM node:20-alpine AS build
 WORKDIR /app
+ARG REACT_APP_CLERK_PUBLISHABLE_KEY
+ENV REACT_APP_CLERK_PUBLISHABLE_KEY=$REACT_APP_CLERK_PUBLISHABLE_KEY
 COPY package*.json ./
 RUN npm ci --omit=optional
 COPY . .

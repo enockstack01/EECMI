@@ -1,8 +1,8 @@
 const router = require('express').Router();
-const { protect } = require('../middleware/auth');
+const { requireRole } = require('../middleware/clerkAuth');
 const c = require('../controllers/adminController');
 
-router.use(protect);
+router.use(requireRole('admin', 'editor', 'super_admin'));
 
 // Dashboard
 router.get('/stats', c.getDashboard);
@@ -44,9 +44,10 @@ router.get('/partners',          c.getPartners);
 router.patch('/partners/:id',    c.updatePartner);
 router.delete('/partners/:id',   c.deletePartner);
 
-// Admin users (super_admin only)
-router.get('/admins',            c.getAdmins);
-router.post('/admins',           c.createAdmin);
-router.patch('/admins/:id/toggle', c.toggleAdmin);
+// Team management (super_admin only)
+const requireSuperAdmin = requireRole('super_admin');
+router.get('/team',                    requireSuperAdmin, c.getTeam);
+router.patch('/team/:userId/role',     requireSuperAdmin, c.updateTeamRole);
+router.patch('/team/:userId/ban',      requireSuperAdmin, c.toggleTeamBan);
 
 module.exports = router;

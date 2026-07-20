@@ -18,8 +18,7 @@
     "docker:db": "docker compose exec db psql -U postgres -d eecmi"
   },
   "dependencies": {
-    "bcryptjs": "^2.4.3",
-    "jsonwebtoken": "^9.0.2",
+    "@clerk/express": "^2.1.43",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",

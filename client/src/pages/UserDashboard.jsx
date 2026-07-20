@@ -1,10 +1,11 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { useUserAuth } from '../context/UserAuthContext';
+import { useClerk } from '@clerk/clerk-react';
+import { useRole } from '../hooks/useRole';
 import {
   FiUsers, FiLink, FiSend, FiArrowRight, FiLogOut,
-  FiLock, FiHeart, FiGlobe, FiBook,
+  FiLock, FiHeart, FiGlobe, FiBook, FiSettings,
 } from 'react-icons/fi';
 
 const involvementOptions = [
@@ -45,16 +46,17 @@ const programs = [
 ];
 
 export default function UserDashboard() {
-  const { user, loading, isSignedIn, logout } = useUserAuth();
+  const { user, isLoaded, isSignedIn } = useRole();
+  const { signOut, openUserProfile } = useClerk();
   const navigate = useNavigate();
 
   React.useEffect(() => {
-    if (!loading && !isSignedIn) {
+    if (isLoaded && !isSignedIn) {
       navigate('/login', { replace: true });
     }
-  }, [loading, isSignedIn, navigate]);
+  }, [isLoaded, isSignedIn, navigate]);
 
-  if (loading) {
+  if (!isLoaded) {
     return (
       <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ color: 'var(--gray-500)', fontSize: '1rem' }}>Loading...</div>
@@ -64,12 +66,9 @@ export default function UserDashboard() {
 
   if (!isSignedIn) return null;
 
-  const firstName = user?.name?.split(' ')[0] || 'Friend';
+  const firstName = user?.firstName || user?.fullName?.split(' ')[0] || 'Friend';
 
-  const handleLogout = () => {
-    logout();
-    navigate('/', { replace: true });
-  };
+  const handleLogout = () => signOut(() => navigate('/', { replace: true }));
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4 }}>
@@ -82,29 +81,50 @@ export default function UserDashboard() {
         <div className="container" style={{ position: 'relative', zIndex: 2 }}>
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
-              <div>
-                <div style={{ color: 'var(--gold)', fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '1rem' }}>My Account</div>
-                <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: 'clamp(1.75rem, 4vw, 2.75rem)', color: 'white', fontWeight: 700, lineHeight: 1.2, marginBottom: '0.75rem' }}>
-                  Welcome, {firstName}
-                </h1>
-                <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '1rem', lineHeight: 1.8 }}>
-                  Explore all the ways you can get involved in God's transforming work across Uganda.
-                </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', flexWrap: 'wrap' }}>
+                {user?.imageUrl && (
+                  <img src={user.imageUrl} alt={firstName} style={{ width: '64px', height: '64px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.3)', flexShrink: 0 }} />
+                )}
+                <div>
+                  <div style={{ color: 'var(--gold)', fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '1rem' }}>My Account</div>
+                  <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: 'clamp(1.75rem, 4vw, 2.75rem)', color: 'white', fontWeight: 700, lineHeight: 1.2, marginBottom: '0.75rem' }}>
+                    Welcome, {firstName}
+                  </h1>
+                  <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '1rem', lineHeight: 1.8 }}>
+                    Explore all the ways you can get involved in God's transforming work across Uganda.
+                  </p>
+                </div>
               </div>
-              <button
-                onClick={handleLogout}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: '0.5rem',
-                  background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.25)',
-                  borderRadius: '8px', padding: '0.65rem 1.25rem',
-                  color: 'rgba(255,255,255,0.8)', fontSize: '0.875rem', cursor: 'pointer',
-                  transition: 'all 0.2s',
-                }}
-                onMouseOver={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.18)'; e.currentTarget.style.color = 'white'; }}
-                onMouseOut={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = 'rgba(255,255,255,0.8)'; }}
-              >
-                <FiLogOut size={15} /> Sign Out
-              </button>
+              <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                <button
+                  onClick={() => openUserProfile()}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '0.5rem',
+                    background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.25)',
+                    borderRadius: '8px', padding: '0.65rem 1.25rem',
+                    color: 'rgba(255,255,255,0.8)', fontSize: '0.875rem', cursor: 'pointer',
+                    transition: 'all 0.2s',
+                  }}
+                  onMouseOver={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.18)'; e.currentTarget.style.color = 'white'; }}
+                  onMouseOut={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = 'rgba(255,255,255,0.8)'; }}
+                >
+                  <FiSettings size={15} /> Manage Account
+                </button>
+                <button
+                  onClick={handleLogout}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '0.5rem',
+                    background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.25)',
+                    borderRadius: '8px', padding: '0.65rem 1.25rem',
+                    color: 'rgba(255,255,255,0.8)', fontSize: '0.875rem', cursor: 'pointer',
+                    transition: 'all 0.2s',
+                  }}
+                  onMouseOver={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.18)'; e.currentTarget.style.color = 'white'; }}
+                  onMouseOut={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = 'rgba(255,255,255,0.8)'; }}
+                >
+                  <FiLogOut size={15} /> Sign Out
+                </button>
+              </div>
             </div>
           </motion.div>
         </div>

@@ -53,6 +53,8 @@ services:
       context: ./client
       dockerfile: Dockerfile
       target: production            # compiles React → nginx serves static files
+      args:
+        REACT_APP_CLERK_PUBLISHABLE_KEY: ${CLERK_PUBLISHABLE_KEY}
     container_name: eecmi_client_prod
     restart: always
     ports:

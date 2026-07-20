@@ -1,8 +1,8 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { AdminAuthProvider } from './context/AdminAuthContext';
-import ProtectedRoute from './components/ProtectedRoute';
+import RequireRole from '../components/RequireRole';
+import { ADMIN_ROLES } from '../hooks/useRole';
 import AdminLayout from './components/AdminLayout';
-import AdminLogin from './pages/AdminLogin';
 import Dashboard from './pages/Dashboard';
 import ContactsPage from './pages/ContactsPage';
 import PrayersPage from './pages/PrayersPage';
@@ -10,18 +10,18 @@ import VolunteersPage from './pages/VolunteersPage';
 import SubscribersPage from './pages/SubscribersPage';
 import NewsPage from './pages/NewsPage';
 import ResourcesPage from './pages/ResourcesPage';
-import AdminsPage from './pages/AdminsPage';
+import TeamPage from './pages/TeamPage';
 import PartnersPage from './pages/PartnersPage';
 
 export default function AdminApp() {
   return (
-    <AdminAuthProvider>
-      <Routes>
-        <Route path="login" element={<AdminLogin />} />
-        <Route
-          path="*"
-          element={
-            <ProtectedRoute>
+    <Routes>
+      <Route path="login" element={<Navigate to="/login" replace />} />
+      <Route
+        path="*"
+        element={
+          <RequireRole roles={ADMIN_ROLES}>
+            <AdminAuthProvider>
               <AdminLayout>
                 <Routes>
                   <Route index element={<Navigate to="dashboard" replace />} />
@@ -33,13 +33,13 @@ export default function AdminApp() {
                   <Route path="news"        element={<NewsPage />} />
                   <Route path="resources"   element={<ResourcesPage />} />
                   <Route path="partners"    element={<PartnersPage />} />
-                  <Route path="admins"      element={<AdminsPage />} />
+                  <Route path="team"        element={<TeamPage />} />
                 </Routes>
               </AdminLayout>
-            </ProtectedRoute>
-          }
-        />
-      </Routes>
-    </AdminAuthProvider>
+            </AdminAuthProvider>
+          </RequireRole>
+        }
+      />
+    </Routes>
   );
 }
