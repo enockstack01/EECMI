@@ -1,32 +1,17 @@
-import { createContext, useContext, useState, useCallback } from 'react';
+import { createContext, useContext, useCallback, useMemo } from 'react';
+import { useAuth, useClerk } from '@clerk/clerk-react';
+import { useRole } from '../../hooks/useRole';
 
 const AdminAuthContext = createContext(null);
 
-const TOKEN_KEY = 'eecmi_admin_token';
-const ADMIN_KEY = 'eecmi_admin_user';
-
 export function AdminAuthProvider({ children }) {
-  const [token, setToken] = useState(() => localStorage.getItem(TOKEN_KEY));
-  const [admin, setAdmin] = useState(() => {
-    try { return JSON.parse(localStorage.getItem(ADMIN_KEY)); } catch { return null; }
-  });
-
-  const login = useCallback((newToken, adminUser) => {
-    localStorage.setItem(TOKEN_KEY, newToken);
-    localStorage.setItem(ADMIN_KEY, JSON.stringify(adminUser));
-    setToken(newToken);
-    setAdmin(adminUser);
-  }, []);
-
-  const logout = useCallback(() => {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(ADMIN_KEY);
-    setToken(null);
-    setAdmin(null);
-  }, []);
+  const { getToken } = useAuth();
+  const { signOut } = useClerk();
+  const { role, isSuperAdmin, isSignedIn, isLoaded, user } = useRole();
 
   const authFetch = useCallback(async (url, options = {}) => {
-    const res = await fetch(url, {
+    const token = await getToken();
+    return fetch(url, {
       ...options,
       headers: {
         'Content-Type': 'application/json',
@@ -34,15 +19,24 @@ export function AdminAuthProvider({ children }) {
         ...options.headers,
       },
     });
-    if (res.status === 401) { logout(); return res; }
-    return res;
-  }, [token, logout]);
+  }, [getToken]);
 
-  return (
-    <AdminAuthContext.Provider value={{ token, admin, login, logout, authFetch, isAuthenticated: !!token }}>
-      {children}
-    </AdminAuthContext.Provider>
-  );
+  const admin = useMemo(() => {
+    if (!user) return null;
+    return {
+      id: user.id,
+      name: user.fullName || user.username || user.primaryEmailAddress?.emailAddress || 'Admin',
+      email: user.primaryEmailAddress?.emailAddress,
+      imageUrl: user.imageUrl,
+      role,
+    };
+  }, [user, role]);
+
+  const logout = useCallback(() => signOut({ redirectUrl: '/' }), [signOut]);
+
+  const value = { admin, role, isSuperAdmin, isAuthenticated: isSignedIn, isLoaded, authFetch, logout };
+
+  return <AdminAuthContext.Provider value={value}>{children}</AdminAuthContext.Provider>;
 }
 
 export const useAdminAuth = () => useContext(AdminAuthContext);

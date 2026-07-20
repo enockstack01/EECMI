@@ -431,6 +431,14 @@ input, textarea, select {
   }
 }
 
+/* Keep the fixed topbar+header stack a stable single-line height on small
+   screens, since every page hardcodes hero padding-top to clear it. */
+@media (max-width: 480px) {
+  .eecmi-topbar-quote {
+    display: none;
+  }
+}
+
 /* ============================================
    SLICK CAROUSEL OVERRIDES
    ============================================ */

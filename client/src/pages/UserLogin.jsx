@@ -1,30 +1,10 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React from 'react';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { useForm } from 'react-hook-form';
-import { FiMail, FiLock, FiLogIn } from 'react-icons/fi';
-import { useUserAuth } from '../context/UserAuthContext';
+import { SignIn } from '@clerk/clerk-react';
+import { clerkAppearance } from '../utils/clerkAppearance';
 
 export default function UserLogin() {
-  const { login } = useUserAuth();
-  const navigate = useNavigate();
-  const { register, handleSubmit, formState: { errors } } = useForm();
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  const onSubmit = async ({ email, password }) => {
-    setError('');
-    setLoading(true);
-    try {
-      await login(email, password);
-      navigate('/dashboard', { replace: true });
-    } catch (err) {
-      setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4 }}>
       {/* Hero */}
@@ -52,63 +32,16 @@ export default function UserLogin() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          style={{ width: '100%', maxWidth: '460px', padding: '0 1.5rem' }}
+          style={{ width: '100%', maxWidth: '460px', padding: '0 1.5rem', display: 'flex', justifyContent: 'center' }}
         >
-          <div style={{ background: 'white', borderRadius: '20px', padding: '2.5rem', boxShadow: '0 20px 60px rgba(0,0,0,0.1)' }}>
-            <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.75rem', fontWeight: 700, marginBottom: '0.4rem', color: 'var(--gray-900)' }}>Sign In</h2>
-            <p style={{ color: 'var(--gray-500)', fontSize: '0.875rem', marginBottom: '2rem' }}>Access your EECMI member dashboard</p>
-
-            {error && (
-              <div style={{ background: 'rgba(220,38,38,0.08)', border: '1px solid rgba(220,38,38,0.25)', borderRadius: '10px', padding: '0.85rem 1rem', marginBottom: '1.5rem', color: '#dc2626', fontSize: '0.875rem' }}>
-                {error}
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit(onSubmit)}>
-              <div className="form-group">
-                <label className="form-label">Email Address</label>
-                <div style={{ position: 'relative' }}>
-                  <FiMail size={16} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--gray-400)' }} />
-                  <input
-                    className="form-input"
-                    type="email"
-                    placeholder="your@email.com"
-                    style={{ paddingLeft: '2.75rem' }}
-                    {...register('email', { required: 'Email is required' })}
-                  />
-                </div>
-                {errors.email && <p className="form-error">{errors.email.message}</p>}
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Password</label>
-                <div style={{ position: 'relative' }}>
-                  <FiLock size={16} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--gray-400)' }} />
-                  <input
-                    className="form-input"
-                    type="password"
-                    placeholder="Your password"
-                    style={{ paddingLeft: '2.75rem' }}
-                    {...register('password', { required: 'Password is required' })}
-                  />
-                </div>
-                {errors.password && <p className="form-error">{errors.password.message}</p>}
-              </div>
-
-              <button
-                type="submit"
-                className="btn btn-primary"
-                disabled={loading}
-                style={{ width: '100%', justifyContent: 'center', padding: '1rem', fontSize: '1rem', marginTop: '0.5rem' }}
-              >
-                {loading ? 'Signing in...' : <><FiLogIn size={16} /> Sign In</>}
-              </button>
-            </form>
-
-            <p style={{ textAlign: 'center', color: 'var(--gray-500)', fontSize: '0.875rem', marginTop: '1.5rem' }}>
-              New to EECMI?{' '}
-              <Link to="/register" style={{ color: 'var(--forest-green)', fontWeight: 600 }}>Create a free account</Link>
-            </p>
+          <div style={{ background: 'white', borderRadius: '20px', padding: '2.5rem', boxShadow: '0 20px 60px rgba(0,0,0,0.1)', width: '100%' }}>
+            <SignIn
+              routing="path"
+              path="/login"
+              signUpUrl="/register"
+              fallbackRedirectUrl="/post-auth"
+              appearance={clerkAppearance}
+            />
           </div>
         </motion.div>
       </section>

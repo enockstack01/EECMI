@@ -1,12 +1,12 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
-import { UserAuthProvider } from './context/UserAuthContext';
 
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ScrollToTop from './components/ScrollToTop';
 import WhatsAppButton from './components/WhatsAppButton';
+import RequireRole from './components/RequireRole';
 
 import Home from './pages/Home';
 import About from './pages/About';
@@ -20,6 +20,7 @@ import Leadership from './pages/Leadership';
 import UserLogin from './pages/UserLogin';
 import UserRegister from './pages/UserRegister';
 import UserDashboard from './pages/UserDashboard';
+import PostAuth from './pages/PostAuth';
 
 import AdminApp from './admin/AdminApp';
 
@@ -44,9 +45,10 @@ function AppContent() {
             <Route path="/news" element={<News />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/leadership" element={<Leadership />} />
-            <Route path="/login" element={<UserLogin />} />
-            <Route path="/register" element={<UserRegister />} />
-            <Route path="/dashboard" element={<UserDashboard />} />
+            <Route path="/login/*" element={<UserLogin />} />
+            <Route path="/register/*" element={<UserRegister />} />
+            <Route path="/post-auth" element={<PostAuth />} />
+            <Route path="/dashboard" element={<RequireRole roles={null}><UserDashboard /></RequireRole>} />
           </Routes>
         </AnimatePresence>
       </main>
@@ -58,14 +60,12 @@ function AppContent() {
 
 function App() {
   return (
-    <UserAuthProvider>
-      <Router>
-        <Routes>
-          <Route path="/admin/*" element={<AdminApp />} />
-          <Route path="/*" element={<AppContent />} />
-        </Routes>
-      </Router>
-    </UserAuthProvider>
+    <Router>
+      <Routes>
+        <Route path="/admin/*" element={<AdminApp />} />
+        <Route path="/*" element={<AppContent />} />
+      </Routes>
+    </Router>
   );
 }
 

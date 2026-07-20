@@ -1,9 +1,8 @@
 const router = require('express').Router();
-const { login, getMe, changePassword } = require('../controllers/authController');
-const { protect } = require('../middleware/auth');
+const { requireSignedIn } = require('../middleware/clerkAuth');
+const { syncRole, getMe } = require('../controllers/authController');
 
-router.post('/login', login);
-router.get('/me', protect, getMe);
-router.put('/change-password', protect, changePassword);
+router.post('/sync-role', requireSignedIn, syncRole);
+router.get('/me', requireSignedIn, getMe);
 
 module.exports = router;

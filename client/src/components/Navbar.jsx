@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link, NavLink, useLocation } from 'react-router-dom';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useClerk } from '@clerk/clerk-react';
 import { FiMenu, FiX, FiChevronDown, FiUser, FiLogIn } from 'react-icons/fi';
-import { useUserAuth } from '../context/UserAuthContext';
+import { useRole } from '../hooks/useRole';
 
 const navLinks = [
   { label: 'Home', path: '/' },
@@ -25,11 +26,17 @@ const navLinks = [
 ];
 
 export default function Navbar() {
-  const { isSignedIn, user, logout } = useUserAuth();
+  const { isSignedIn, user, isAdmin } = useRole();
+  const { signOut } = useClerk();
+  const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null);
   const location = useLocation();
+
+  const logout = () => signOut(() => navigate('/'));
+  const dashboardPath = isAdmin ? '/admin/dashboard' : '/dashboard';
+  const firstName = user?.firstName || user?.fullName?.split(' ')[0] || 'My Account';
 
   const handleScroll = useCallback(() => {
     setScrolled(window.scrollY > 30);
@@ -50,8 +57,10 @@ export default function Navbar() {
 
   return (
     <>
+      {/* Fixed stack: top bar + header scroll together, anchored to the viewport top */}
+      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000 }}>
       {/* Top bar */}
-      <div style={{
+      <div className="eecmi-topbar" style={{
         background: 'var(--dark-green)',
         color: 'rgba(255,255,255,0.85)',
         fontSize: '0.78rem',
@@ -59,21 +68,16 @@ export default function Navbar() {
         textAlign: 'center',
         letterSpacing: '0.03em',
       }}>
-        <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
-          <span style={{ fontFamily: 'var(--font-cinzel)', color: 'var(--gold)', fontStyle: 'italic', fontSize: '0.75rem' }}>
+        <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'nowrap', gap: '0.5rem', overflow: 'hidden' }}>
+          <span className="eecmi-topbar-quote" style={{ fontFamily: 'var(--font-cinzel)', color: 'var(--gold)', fontStyle: 'italic', fontSize: '0.75rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             "Arise, shine, for your light has come" — Isaiah 60:1
           </span>
-          <span>Kampala, Uganda &nbsp;|&nbsp; admin@eecmi.org</span>
+          <span style={{ whiteSpace: 'nowrap', flexShrink: 0 }}>Kampala, Uganda &nbsp;|&nbsp; admin@eecmi.org</span>
         </div>
       </div>
 
       <header
         style={{
-          position: 'fixed',
-          top: '2rem',
-          left: 0,
-          right: 0,
-          zIndex: 1000,
           transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
           background: transparent
             ? 'transparent'
@@ -175,11 +179,11 @@ export default function Navbar() {
             ))}
             {isSignedIn ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginLeft: '0.75rem' }}>
-                <Link to="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'rgba(255,255,255,0.88)', fontSize: '0.875rem', padding: '0.5rem 0.9rem', borderRadius: '8px', transition: 'var(--transition)' }}
+                <Link to={dashboardPath} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'rgba(255,255,255,0.88)', fontSize: '0.875rem', padding: '0.5rem 0.9rem', borderRadius: '8px', transition: 'var(--transition)' }}
                   onMouseOver={e => e.currentTarget.style.color = 'var(--gold-light)'}
                   onMouseOut={e => e.currentTarget.style.color = 'rgba(255,255,255,0.88)'}
                 >
-                  <FiUser size={14} /> {user?.name?.split(' ')[0] || 'My Account'}
+                  <FiUser size={14} /> {firstName}
                 </Link>
                 <button onClick={logout} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: 'rgba(255,255,255,0.7)', fontSize: '0.8rem', padding: '0.5rem 0.9rem', borderRadius: '8px', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', cursor: 'pointer', transition: 'var(--transition)' }}
                   onMouseOver={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.15)'; e.currentTarget.style.color = 'white'; }}
@@ -214,6 +218,7 @@ export default function Navbar() {
           </button>
         </div>
       </header>
+      </div>
 
       {/* Mobile Menu */}
       <AnimatePresence>
@@ -248,7 +253,7 @@ export default function Navbar() {
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} style={{ marginTop: '2rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 {isSignedIn ? (
                   <>
-                    <Link to="/dashboard" className="btn btn-gold" style={{ justifyContent: 'center', fontSize: '1rem' }} onClick={() => setMobileOpen(false)}>
+                    <Link to={dashboardPath} className="btn btn-gold" style={{ justifyContent: 'center', fontSize: '1rem' }} onClick={() => setMobileOpen(false)}>
                       <FiUser size={16} /> My Dashboard
                     </Link>
                     <button onClick={() => { logout(); setMobileOpen(false); }} style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '8px', padding: '0.75rem', color: 'white', fontSize: '1rem', cursor: 'pointer', width: '100%' }}>
