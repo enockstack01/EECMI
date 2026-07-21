@@ -31,7 +31,8 @@ app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:3000' }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
-app.use(clerkMiddleware());
+// Scoped to /api so a Clerk misconfiguration can't take down the public site.
+app.use('/api', clerkMiddleware());
 app.use('/api', limiter);
 
 app.use('/api/contact',    require('./routes/contactRoutes'));
