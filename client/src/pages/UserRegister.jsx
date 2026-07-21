@@ -34,15 +34,13 @@ export default function UserRegister() {
           transition={{ duration: 0.6, delay: 0.1 }}
           style={{ width: '100%', maxWidth: '460px', padding: '0 1.5rem', display: 'flex', justifyContent: 'center' }}
         >
-          <div style={{ background: 'white', borderRadius: '20px', padding: '2.5rem', boxShadow: '0 20px 60px rgba(0,0,0,0.1)', width: '100%' }}>
-            <SignUp
-              routing="path"
-              path="/register"
-              signInUrl="/login"
-              fallbackRedirectUrl="/post-auth"
-              appearance={clerkAppearance}
-            />
-          </div>
+          <SignUp
+            routing="path"
+            path="/register"
+            signInUrl="/login"
+            fallbackRedirectUrl="/post-auth"
+            appearance={clerkAppearance}
+          />
         </motion.div>
       </section>
     </motion.div>

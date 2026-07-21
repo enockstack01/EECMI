@@ -16,7 +16,7 @@ export const clerkAppearance = {
   },
   elements: {
     rootBox: { width: '100%' },
-    card: { boxShadow: 'none', padding: 0, width: '100%' },
+    card: { boxShadow: '0 20px 60px rgba(0,0,0,0.1)', borderRadius: '20px', padding: '2.5rem', width: '100%' },
     headerTitle: { fontFamily: "'Playfair Display', Georgia, serif", fontWeight: 700 },
     formButtonPrimary: {
       backgroundColor: '#2D6A4F',
