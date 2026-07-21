@@ -35,6 +35,11 @@ services:
       - key: CLERK_SECRET_KEY
         sync: false
 
+      # Read server-side by @clerk/express to verify the JWT issuer — distinct
+      # from REACT_APP_CLERK_PUBLISHABLE_KEY below, but same value.
+      - key: CLERK_PUBLISHABLE_KEY
+        sync: false
+
       - key: SUPER_ADMIN_EMAILS
         sync: false
 
