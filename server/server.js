@@ -26,7 +26,23 @@ const limiter = rateLimit({
   message: 'Too many requests from this IP. Please try again in 15 minutes.',
 });
 
-app.use(helmet());
+// Clerk's React SDK loads its runtime JS from Clerk's CDN and talks to the
+// Frontend API directly from the browser, so Helmet's default CSP (script-src
+// 'self' etc.) silently blocks it — Clerk components just render nothing.
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+        'script-src': ["'self'", 'https://*.clerk.accounts.dev', 'https://*.clerk.com', 'https://challenges.cloudflare.com'],
+        'connect-src': ["'self'", 'https://*.clerk.accounts.dev', 'https://*.clerk.com', 'https://api.clerk.com'],
+        'img-src': ["'self'", 'data:', 'https://img.clerk.com'],
+        'frame-src': ["'self'", 'https://*.clerk.accounts.dev', 'https://*.clerk.com', 'https://challenges.cloudflare.com'],
+        'worker-src': ["'self'", 'blob:'],
+      },
+    },
+  })
+);
 app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:3000' }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
