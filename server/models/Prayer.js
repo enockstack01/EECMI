@@ -1,38 +1,14 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/db');
+const { mongoose } = require('../config/db');
+const { cleanJSON } = require('../config/schemaOptions');
 
-const Prayer = sequelize.define('Prayer', {
-  name: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  email: {
-    type: DataTypes.STRING,
-    validate: { isEmail: true },
-  },
-  request: {
-    type: DataTypes.TEXT,
-    allowNull: false,
-  },
-  isAnonymous: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: false,
-  },
-  isPublic: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: false,
-  },
-  prayerCount: {
-    type: DataTypes.INTEGER,
-    defaultValue: 0,
-  },
-  status: {
-    type: DataTypes.ENUM('pending', 'prayed', 'answered'),
-    defaultValue: 'pending',
-  },
-}, {
-  tableName: 'prayers',
-  timestamps: true,
-});
+const prayerSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  email: { type: String },
+  request: { type: String, required: true },
+  isAnonymous: { type: Boolean, default: false },
+  isPublic: { type: Boolean, default: false },
+  prayerCount: { type: Number, default: 0 },
+  status: { type: String, enum: ['pending', 'prayed', 'answered'], default: 'pending' },
+}, { timestamps: true, collection: 'prayers', toJSON: cleanJSON });
 
-module.exports = Prayer;
+module.exports = mongoose.models.Prayer || mongoose.model('Prayer', prayerSchema);

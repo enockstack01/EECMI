@@ -13,11 +13,7 @@ exports.submitPrayer = async (req, res) => {
 
 exports.getPublicPrayers = async (req, res) => {
   try {
-    const prayers = await Prayer.findAll({
-      where: { isPublic: true },
-      order: [['createdAt', 'DESC']],
-      limit: 20,
-    });
+    const prayers = await Prayer.find({ isPublic: true }).sort({ createdAt: -1 }).limit(20);
     res.json({ success: true, data: prayers });
   } catch (error) {
     console.error(error);
@@ -27,10 +23,12 @@ exports.getPublicPrayers = async (req, res) => {
 
 exports.prayForRequest = async (req, res) => {
   try {
-    const prayer = await Prayer.findByPk(req.params.id);
+    const prayer = await Prayer.findByIdAndUpdate(
+      req.params.id,
+      { $inc: { prayerCount: 1 } },
+      { new: true }
+    );
     if (!prayer) return res.status(404).json({ success: false, message: 'Prayer not found.' });
-    await prayer.increment('prayerCount');
-    await prayer.reload();
     res.json({ success: true, data: prayer });
   } catch (error) {
     console.error(error);

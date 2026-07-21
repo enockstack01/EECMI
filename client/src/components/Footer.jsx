@@ -6,6 +6,7 @@ import {
   FiMapPin, FiMail, FiPhone, FiSend, FiHeart
 } from 'react-icons/fi';
 import axios from 'axios';
+import logo from '../assets/logo.png';
 
 const footerLinks = {
   'Ministry': [
@@ -97,10 +98,10 @@ export default function Footer() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
               <div style={{
                 width: '44px', height: '44px', borderRadius: '10px',
-                background: 'linear-gradient(135deg, var(--gold), var(--gold-light))',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: 'white', padding: '3px',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
               }}>
-                <span style={{ fontFamily: 'var(--font-cinzel)', fontWeight: 700, color: 'var(--dark-green)', fontSize: '1rem' }}>E</span>
+                <img src={logo} alt="EECMI logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
               </div>
               <div>
                 <div style={{ fontFamily: 'var(--font-cinzel)', fontWeight: 700, fontSize: '0.95rem', color: 'white' }}>EECMI</div>
@@ -114,7 +115,7 @@ export default function Footer() {
 
             <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem' }}>
               {socials.map(({ icon: Icon, label, href }) => (
-                <a key={label} href={href} aria-label={label} style={{
+                <a key={label} href={href} aria-label={label} onClick={e => e.preventDefault()} style={{
                   width: '38px', height: '38px', borderRadius: '50%',
                   border: '1px solid rgba(255,255,255,0.2)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',

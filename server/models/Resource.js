@@ -1,18 +1,15 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/db');
+const { mongoose } = require('../config/db');
+const { cleanJSON } = require('../config/schemaOptions');
 
-const Resource = sequelize.define('Resource', {
-  title:       { type: DataTypes.STRING, allowNull: false },
-  type:        { type: DataTypes.STRING, defaultValue: 'Downloads' },
-  description: { type: DataTypes.TEXT },
-  fileUrl:     { type: DataTypes.STRING },
-  externalUrl: { type: DataTypes.STRING },
-  status:      { type: DataTypes.ENUM('draft', 'published'), defaultValue: 'published' },
-  year:        { type: DataTypes.STRING },
-  downloads:   { type: DataTypes.INTEGER, defaultValue: 0 },
-}, {
-  tableName: 'resources',
-  timestamps: true,
-});
+const resourceSchema = new mongoose.Schema({
+  title: { type: String, required: true },
+  type: { type: String, default: 'Downloads' },
+  description: { type: String },
+  fileUrl: { type: String },
+  externalUrl: { type: String },
+  status: { type: String, enum: ['draft', 'published'], default: 'published' },
+  year: { type: String },
+  downloads: { type: Number, default: 0 },
+}, { timestamps: true, collection: 'resources', toJSON: cleanJSON });
 
-module.exports = Resource;
+module.exports = mongoose.models.Resource || mongoose.model('Resource', resourceSchema);

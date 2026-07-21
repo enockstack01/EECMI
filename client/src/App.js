@@ -1,5 +1,6 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
+import { ClerkProvider } from '@clerk/clerk-react';
 import { AnimatePresence } from 'framer-motion';
 
 import Navbar from './components/Navbar';
@@ -15,6 +16,7 @@ import Impact from './pages/Impact';
 import GetInvolved from './pages/GetInvolved';
 import Resources from './pages/Resources';
 import News from './pages/News';
+import NewsDetail from './pages/NewsDetail';
 import Contact from './pages/Contact';
 import Leadership from './pages/Leadership';
 import UserLogin from './pages/UserLogin';
@@ -23,6 +25,11 @@ import UserDashboard from './pages/UserDashboard';
 import PostAuth from './pages/PostAuth';
 
 import AdminApp from './admin/AdminApp';
+
+const clerkPublishableKey = process.env.REACT_APP_CLERK_PUBLISHABLE_KEY;
+if (!clerkPublishableKey) {
+  throw new Error('Missing REACT_APP_CLERK_PUBLISHABLE_KEY — set it in client/.env');
+}
 
 function AppContent() {
   const location = useLocation();
@@ -43,6 +50,7 @@ function AppContent() {
             <Route path="/get-involved" element={<GetInvolved />} />
             <Route path="/resources" element={<Resources />} />
             <Route path="/news" element={<News />} />
+            <Route path="/news/:id" element={<NewsDetail />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/leadership" element={<Leadership />} />
             <Route path="/login/*" element={<UserLogin />} />
@@ -58,13 +66,22 @@ function AppContent() {
   );
 }
 
-function App() {
+function ClerkProviderWithRoutes() {
+  const navigate = useNavigate();
   return (
-    <Router>
+    <ClerkProvider publishableKey={clerkPublishableKey} navigate={(to) => navigate(to)}>
       <Routes>
         <Route path="/admin/*" element={<AdminApp />} />
         <Route path="/*" element={<AppContent />} />
       </Routes>
+    </ClerkProvider>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <ClerkProviderWithRoutes />
     </Router>
   );
 }

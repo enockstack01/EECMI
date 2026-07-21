@@ -8,14 +8,17 @@ export default function TeamPage() {
   const [rows, setRows]       = useState([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId]   = useState(null);
+  const [search, setSearch]   = useState('');
+  const [roleFilter, setRoleFilter] = useState('');
 
   const load = useCallback(() => {
     setLoading(true);
-    authFetch('/api/admin/team')
+    const qs = new URLSearchParams({ ...(search && { search }) });
+    authFetch(`/api/admin/team?${qs}`)
       .then(r => r.json())
       .then(d => { if (d.success) setRows(d.data); })
       .finally(() => setLoading(false));
-  }, [authFetch]);
+  }, [authFetch, search]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -33,6 +36,8 @@ export default function TeamPage() {
     setBusyId(null);
   };
 
+  const visibleRows = roleFilter ? rows.filter(r => r.role === roleFilter) : rows;
+
   return (
     <div>
       <h2 className="admin-page-title">Team</h2>
@@ -41,8 +46,17 @@ export default function TeamPage() {
         Roles and accounts are managed through Clerk &mdash; there's no separate password to set.
       </p>
 
+      <div className="admin-toolbar">
+        <input className="admin-search" placeholder="Search name or email..." value={search}
+          onChange={e => setSearch(e.target.value)} />
+        <select className="admin-select" value={roleFilter} onChange={e => setRoleFilter(e.target.value)}>
+          <option value="">All roles</option>
+          {ROLES.map(r => <option key={r} value={r}>{r.replace('_', ' ')}</option>)}
+        </select>
+      </div>
+
       <div className="admin-card">
-        {loading ? <div className="admin-loading">Loading...</div> : rows.length === 0
+        {loading ? <div className="admin-loading">Loading...</div> : visibleRows.length === 0
           ? <div className="admin-empty">No team members found.</div>
           : (
             <div className="admin-table-wrap">
@@ -51,7 +65,7 @@ export default function TeamPage() {
                   <tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Last Sign-in</th><th>Actions</th></tr>
                 </thead>
                 <tbody>
-                  {rows.map(row => {
+                  {visibleRows.map(row => {
                     const isSelf = row.id === currentAdmin?.id;
                     return (
                       <tr key={row.id}>

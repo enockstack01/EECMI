@@ -4,7 +4,7 @@ exports.registerVolunteer = async (req, res) => {
   try {
     const { name, email, phone, location, skills, areas, availability, motivation } = req.body;
 
-    const existing = await Volunteer.findOne({ where: { email } });
+    const existing = await Volunteer.findOne({ email });
     if (existing) {
       return res.status(400).json({ success: false, message: 'This email is already registered as a volunteer.' });
     }

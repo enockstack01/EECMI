@@ -4,10 +4,11 @@ exports.subscribe = async (req, res) => {
   try {
     const { email, name } = req.body;
 
-    const existing = await Newsletter.findOne({ where: { email } });
+    const existing = await Newsletter.findOne({ email });
     if (existing) {
       if (!existing.isActive) {
-        await existing.update({ isActive: true });
+        existing.isActive = true;
+        await existing.save();
         return res.json({ success: true, message: 'Welcome back! You have been re-subscribed.' });
       }
       return res.status(400).json({ success: false, message: 'This email is already subscribed.' });
@@ -24,7 +25,7 @@ exports.subscribe = async (req, res) => {
 exports.unsubscribe = async (req, res) => {
   try {
     const { email } = req.body;
-    await Newsletter.update({ isActive: false }, { where: { email } });
+    await Newsletter.updateOne({ email }, { isActive: false });
     res.json({ success: true, message: 'You have been unsubscribed.' });
   } catch (error) {
     console.error(error);

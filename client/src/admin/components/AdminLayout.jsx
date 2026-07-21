@@ -5,6 +5,7 @@ import {
   FiBookOpen, FiLink, FiShield, FiMenu, FiLogOut,
 } from 'react-icons/fi';
 import { useAdminAuth } from '../context/AdminAuthContext';
+import logo from '../../assets/logo.png';
 import './AdminLayout.css';
 
 const NAV = [
@@ -34,7 +35,7 @@ export default function AdminLayout({ children }) {
 
       <aside className="admin-sidebar">
         <div className="admin-sidebar-brand">
-          <span className="brand-cross">✝</span>
+          <img src={logo} alt="EECMI logo" className="brand-logo" />
           <span className="brand-name">EECMI Admin</span>
         </div>
         <nav className="admin-nav">

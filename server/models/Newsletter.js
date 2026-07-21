@@ -1,23 +1,10 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/db');
+const { mongoose } = require('../config/db');
+const { cleanJSON } = require('../config/schemaOptions');
 
-const Newsletter = sequelize.define('Newsletter', {
-  email: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    unique: true,
-    validate: { isEmail: true },
-  },
-  name: {
-    type: DataTypes.STRING,
-  },
-  isActive: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: true,
-  },
-}, {
-  tableName: 'newsletters',
-  timestamps: true,
-});
+const newsletterSchema = new mongoose.Schema({
+  email: { type: String, required: true, unique: true },
+  name: { type: String },
+  isActive: { type: Boolean, default: true },
+}, { timestamps: true, collection: 'newsletters', toJSON: cleanJSON });
 
-module.exports = Newsletter;
+module.exports = mongoose.models.Newsletter || mongoose.model('Newsletter', newsletterSchema);

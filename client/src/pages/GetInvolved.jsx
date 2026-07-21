@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useForm } from 'react-hook-form';
 import axios from 'axios';
 import {
-  FiUsers, FiLink, FiSend, FiArrowRight,
+  FiUsers, FiLink, FiSend, FiArrowRight, FiHeart, FiMail, FiPhone,
   FiHome, FiBriefcase, FiBarChart2, FiBook,
   FiCheck, FiX,
 } from 'react-icons/fi';
@@ -12,6 +13,7 @@ const tabs = [
   { id: 'volunteer', label: 'Volunteer', shortDesc: 'Outreach, mentoring, training, and prayer', icon: FiUsers },
   { id: 'partner',   label: 'Partner',   shortDesc: 'Churches, NGOs, businesses, and individuals', icon: FiLink },
   { id: 'prayer',    label: 'Pray',      shortDesc: 'Join the prayer network', icon: FiSend },
+  { id: 'donate',    label: 'Donate',    shortDesc: 'Support the ministry financially', icon: FiHeart },
 ];
 
 const volunteerAreas = [
@@ -312,7 +314,8 @@ function PrayerForm() {
 
 export default function GetInvolved() {
   const [activeTab, setActiveTab] = useState('volunteer');
-  const hash = typeof window !== 'undefined' ? window.location.hash.replace('#', '') : '';
+  const location = useLocation();
+  const hash = location.hash.replace('#', '');
 
   React.useEffect(() => {
     if (hash && tabs.find(t => t.id === hash)) {
@@ -463,6 +466,35 @@ export default function GetInvolved() {
                 </div>
 
                 <PrayerForm />
+              </div>
+            </motion.div>
+          )}
+
+          {/* DONATE */}
+          {activeTab === 'donate' && (
+            <motion.div id="donate" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+              <div style={{ maxWidth: '700px', margin: '0 auto', textAlign: 'center' }}>
+                <div className="section-badge">Give Toward the Mission</div>
+                <h2 className="section-title">Support EECMI</h2>
+                <div className="divider" style={{ margin: '0 auto' }} />
+                <p style={{ color: 'var(--gray-500)', fontSize: '1rem', lineHeight: 1.9, marginBottom: '2rem' }}>
+                  Your giving restores lives, rebuilds families, and transforms communities across Uganda.
+                  Reach out to our team directly and we'll walk you through the best way to give —
+                  whether that's a bank transfer, mobile money, or an in-kind contribution.
+                </p>
+
+                <div style={{ background: 'var(--gray-50)', borderRadius: '16px', padding: '2rem', border: '1px solid var(--gray-100)', display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2rem' }}>
+                  <a href="mailto:admin@eecmi.org" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.6rem', color: 'var(--gray-900)', fontSize: '0.95rem', fontWeight: 600 }}>
+                    <FiMail size={16} style={{ color: 'var(--forest-green)' }} /> admin@eecmi.org
+                  </a>
+                  <a href="tel:+250722439327" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.6rem', color: 'var(--gray-900)', fontSize: '0.95rem', fontWeight: 600 }}>
+                    <FiPhone size={16} style={{ color: 'var(--forest-green)' }} /> +250 722 439 327
+                  </a>
+                </div>
+
+                <Link to="/contact" className="btn btn-primary" style={{ fontSize: '1rem', padding: '0.9rem 2.5rem' }}>
+                  <FiHeart size={16} /> Contact Us About Giving
+                </Link>
               </div>
             </motion.div>
           )}

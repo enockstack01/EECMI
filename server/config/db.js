@@ -1,29 +1,22 @@
-const { Sequelize } = require('sequelize');
+const dns = require('dns');
+const mongoose = require('mongoose');
 
-let sequelize;
+const connectDB = () => {
+  const uri = process.env.MONGODB_URI;
+  if (!uri) {
+    throw new Error('MONGODB_URI is not set. Check your .env file.');
+  }
 
-if (process.env.DATABASE_URL) {
-  sequelize = new Sequelize(process.env.DATABASE_URL, {
-    dialect: 'postgres',
-    logging: process.env.NODE_ENV === 'development' ? (msg) => console.log(`[SQL] ${msg}`) : false,
-    dialectOptions: {
-      ssl: process.env.NODE_ENV === 'production'
-        ? { require: true, rejectUnauthorized: false }
-        : false,
-    },
-  });
-} else {
-  sequelize = new Sequelize(
-    process.env.DB_NAME || 'eecmi',
-    process.env.DB_USER || 'postgres',
-    process.env.DB_PASSWORD || '',
-    {
-      host: process.env.DB_HOST || 'localhost',
-      port: Number(process.env.DB_PORT) || 5432,
-      dialect: 'postgres',
-      logging: process.env.NODE_ENV === 'development' ? (msg) => console.log(`[SQL] ${msg}`) : false,
-    }
-  );
-}
+  // mongodb+srv:// needs a DNS SRV lookup. Some networks hand Node a
+  // resolver (e.g. a local proxy on 127.0.0.1) that refuses SRV queries
+  // even though it handles normal A/AAAA lookups fine, so fall back to
+  // public resolvers for the SRV/TXT lookups the driver depends on.
+  if (uri.startsWith('mongodb+srv://')) {
+    dns.setServers([...dns.getServers(), '8.8.8.8', '1.1.1.1']);
+  }
 
-module.exports = sequelize;
+  mongoose.set('strictQuery', true);
+  return mongoose.connect(uri);
+};
+
+module.exports = { mongoose, connectDB };
