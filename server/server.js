@@ -37,7 +37,8 @@ app.use(
         'script-src': ["'self'", 'https://*.clerk.accounts.dev', 'https://*.clerk.com', 'https://challenges.cloudflare.com'],
         'connect-src': ["'self'", 'https://*.clerk.accounts.dev', 'https://*.clerk.com', 'https://api.clerk.com'],
         'img-src': ["'self'", 'data:', 'https://img.clerk.com'],
-        'frame-src': ["'self'", 'https://*.clerk.accounts.dev', 'https://*.clerk.com', 'https://challenges.cloudflare.com'],
+        // https://www.google.com is for the embedded Google Maps iframe on the Contact page.
+        'frame-src': ["'self'", 'https://*.clerk.accounts.dev', 'https://*.clerk.com', 'https://challenges.cloudflare.com', 'https://www.google.com'],
         'worker-src': ["'self'", 'blob:'],
       },
     },
