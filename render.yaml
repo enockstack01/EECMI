@@ -1,0 +1,54 @@
+# Render Blueprint — EECMI Platform
+#
+# Deploys ONE Web Service: Express builds + serves the React client
+# (server.js already serves client/build when NODE_ENV=production)
+# and exposes the /api/* routes from the same origin, so no CORS or
+# rewrite-proxy config is needed.
+#
+# Usage:
+#   Render Dashboard → New → Blueprint → connect this repo.
+#   Render reads this file and creates the service below, prompting
+#   you to fill in every "sync: false" value (secrets are never
+#   stored in this file).
+
+services:
+  - type: web
+    name: eecmi-platform
+    runtime: node
+    plan: starter
+    region: oregon
+    branch: main
+    buildCommand: npm install && npm install --prefix client && npm run build --prefix client
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+
+      # Render injects PORT automatically — do not set it manually.
+
+      - key: CLIENT_URL
+        sync: false   # your Render service URL, e.g. https://eecmi-platform.onrender.com
+
+      - key: MONGODB_URI
+        sync: false
+
+      - key: CLERK_SECRET_KEY
+        sync: false
+
+      - key: SUPER_ADMIN_EMAILS
+        sync: false
+
+      # Build-time only: baked into the React bundle by `npm run build --prefix client`.
+      - key: REACT_APP_CLERK_PUBLISHABLE_KEY
+        sync: false
+
+      # Currently unused by the code (nodemailer is installed but not wired
+      # up anywhere) — safe to skip until a contact-form email feature ships.
+      - key: EMAIL_HOST
+        sync: false
+      - key: EMAIL_PORT
+        sync: false
+      - key: EMAIL_USER
+        sync: false
+      - key: EMAIL_PASS
+        sync: false
