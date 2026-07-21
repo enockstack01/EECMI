@@ -1,43 +1,16 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/db');
+const { mongoose } = require('../config/db');
+const { cleanJSON } = require('../config/schemaOptions');
 
-const Volunteer = sequelize.define('Volunteer', {
-  name: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  email: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    unique: true,
-    validate: { isEmail: true },
-  },
-  phone: {
-    type: DataTypes.STRING,
-  },
-  location: {
-    type: DataTypes.STRING,
-  },
-  skills: {
-    type: DataTypes.TEXT,
-  },
-  areas: {
-    type: DataTypes.ARRAY(DataTypes.STRING),
-    defaultValue: [],
-  },
-  availability: {
-    type: DataTypes.STRING,
-  },
-  motivation: {
-    type: DataTypes.TEXT,
-  },
-  status: {
-    type: DataTypes.ENUM('pending', 'active', 'inactive'),
-    defaultValue: 'pending',
-  },
-}, {
-  tableName: 'volunteers',
-  timestamps: true,
-});
+const volunteerSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  phone: { type: String },
+  location: { type: String },
+  skills: { type: String },
+  areas: { type: [String], default: [] },
+  availability: { type: String },
+  motivation: { type: String },
+  status: { type: String, enum: ['pending', 'active', 'inactive'], default: 'pending' },
+}, { timestamps: true, collection: 'volunteers', toJSON: cleanJSON });
 
-module.exports = Volunteer;
+module.exports = mongoose.models.Volunteer || mongoose.model('Volunteer', volunteerSchema);

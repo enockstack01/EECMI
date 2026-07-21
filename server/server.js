@@ -6,10 +6,10 @@ const rateLimit = require('express-rate-limit');
 const path = require('path');
 require('dotenv').config();
 
-const sequelize = require('./config/db');
+const { connectDB } = require('./config/db');
 const { clerkMiddleware } = require('./middleware/clerkAuth');
 
-// Import models so Sequelize registers them before sync
+// Import models so Mongoose registers their schemas
 require('./models/Contact');
 require('./models/Prayer');
 require('./models/Volunteer');
@@ -39,11 +39,12 @@ app.use('/api/prayer',     require('./routes/prayerRoutes'));
 app.use('/api/volunteer',  require('./routes/volunteerRoutes'));
 app.use('/api/newsletter', require('./routes/newsletterRoutes'));
 app.use('/api/partner',    require('./routes/partnerRoutes'));
+app.use('/api/resources',  require('./routes/resourceRoutes'));
 app.use('/api/auth',       require('./routes/authRoutes'));
 app.use('/api/admin',      require('./routes/adminRoutes'));
 
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'EECMI API is running', db: 'PostgreSQL', timestamp: new Date().toISOString() });
+  res.json({ status: 'EECMI API is running', db: 'MongoDB', timestamp: new Date().toISOString() });
 });
 
 if (process.env.NODE_ENV === 'production') {
@@ -62,11 +63,8 @@ const PORT = process.env.PORT || 5000;
 
 const start = async () => {
   try {
-    await sequelize.authenticate();
-    console.log('PostgreSQL connected successfully.');
-
-    await sequelize.sync({ alter: process.env.NODE_ENV !== 'production' });
-    console.log('Database tables synced.');
+    await connectDB();
+    console.log('MongoDB connected successfully.');
 
     if (!process.env.CLERK_SECRET_KEY) {
       console.warn('CLERK_SECRET_KEY is not set — authentication will fail. Check your .env file.');
@@ -76,7 +74,7 @@ const start = async () => {
       console.log(`EECMI Server running on port ${PORT} in ${process.env.NODE_ENV} mode`)
     );
   } catch (error) {
-    console.error('Unable to connect to PostgreSQL:', error.message);
+    console.error('Unable to connect to MongoDB:', error.message);
     process.exit(1);
   }
 };

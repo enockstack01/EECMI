@@ -10,13 +10,3 @@ exports.submitContact = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error. Please try again.' });
   }
 };
-
-exports.getContacts = async (req, res) => {
-  try {
-    const contacts = await Contact.findAll({ order: [['createdAt', 'DESC']] });
-    res.json({ success: true, data: contacts });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: 'Server error.' });
-  }
-};

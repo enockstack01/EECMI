@@ -1,17 +1,14 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/db');
+const { mongoose } = require('../config/db');
+const { cleanJSON } = require('../config/schemaOptions');
 
-const Partner = sequelize.define('Partner', {
-  name:             { type: DataTypes.STRING, allowNull: false },
-  email:            { type: DataTypes.STRING, allowNull: false, validate: { isEmail: true } },
-  organization:     { type: DataTypes.STRING },
-  partnerType:      { type: DataTypes.ENUM('Church', 'NGO', 'Business', 'School', 'Individual'), defaultValue: 'Individual' },
-  partnershipAreas: { type: DataTypes.ARRAY(DataTypes.TEXT) },
-  message:          { type: DataTypes.TEXT },
-  status:           { type: DataTypes.ENUM('pending', 'active', 'inactive'), defaultValue: 'pending' },
-}, {
-  tableName: 'partners',
-  timestamps: true,
-});
+const partnerSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  email: { type: String, required: true },
+  organization: { type: String },
+  partnerType: { type: String, enum: ['Church', 'NGO', 'Business', 'School', 'Individual'], default: 'Individual' },
+  partnershipAreas: { type: [String], default: [] },
+  message: { type: String },
+  status: { type: String, enum: ['pending', 'active', 'inactive'], default: 'pending' },
+}, { timestamps: true, collection: 'partners', toJSON: cleanJSON });
 
-module.exports = Partner;
+module.exports = mongoose.models.Partner || mongoose.model('Partner', partnerSchema);

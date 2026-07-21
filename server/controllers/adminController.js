@@ -1,4 +1,3 @@
-const { Op } = require('sequelize');
 const Contact   = require('../models/Contact');
 const Prayer    = require('../models/Prayer');
 const Volunteer = require('../models/Volunteer');
@@ -33,10 +32,20 @@ const paginate = (query) => {
   return { limit, offset: (page - 1) * limit, page };
 };
 
+const escapeRegExp = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 const searchWhere = (query, fields) => {
   if (!query.search) return {};
-  const like = { [Op.iLike]: `%${query.search}%` };
-  return { [Op.or]: fields.map(f => ({ [f]: like })) };
+  const regex = new RegExp(escapeRegExp(query.search), 'i');
+  return { $or: fields.map(f => ({ [f]: regex })) };
+};
+
+const listPage = async (Model, where, limit, offset, page) => {
+  const [rows, count] = await Promise.all([
+    Model.find(where).sort({ createdAt: -1 }).skip(offset).limit(limit),
+    Model.countDocuments(where),
+  ]);
+  return { rows, count, page, pages: Math.ceil(count / limit) };
 };
 
 // ── DASHBOARD ────────────────────────────────────────────────
@@ -44,17 +53,17 @@ exports.getDashboard = async (req, res) => {
   try {
     const [contacts, prayers, volunteers, subscribers, newPosts, resources, partners, newContacts, recentPrayers, recentVolunteers, recentPartners] =
       await Promise.all([
-        Contact.count(),
-        Prayer.count(),
-        Volunteer.count(),
-        Newsletter.count({ where: { isActive: true } }),
-        NewsPost.count({ where: { status: 'published' } }),
-        Resource.count({ where: { status: 'published' } }),
-        Partner.count(),
-        Contact.findAll({ order: [['createdAt', 'DESC']], limit: 5, attributes: ['id','name','email','subject','status','createdAt'] }),
-        Prayer.findAll({ order: [['createdAt', 'DESC']], limit: 5, attributes: ['id','name','request','status','isAnonymous','createdAt'] }),
-        Volunteer.findAll({ order: [['createdAt', 'DESC']], limit: 5, attributes: ['id','name','email','areas','status','createdAt'] }),
-        Partner.findAll({ order: [['createdAt', 'DESC']], limit: 5, attributes: ['id','name','email','organization','partnerType','status','createdAt'] }),
+        Contact.countDocuments(),
+        Prayer.countDocuments(),
+        Volunteer.countDocuments(),
+        Newsletter.countDocuments({ isActive: true }),
+        NewsPost.countDocuments({ status: 'published' }),
+        Resource.countDocuments({ status: 'published' }),
+        Partner.countDocuments(),
+        Contact.find().sort({ createdAt: -1 }).limit(5).select('name email subject status createdAt'),
+        Prayer.find().sort({ createdAt: -1 }).limit(5).select('name request status isAnonymous createdAt'),
+        Volunteer.find().sort({ createdAt: -1 }).limit(5).select('name email areas status createdAt'),
+        Partner.find().sort({ createdAt: -1 }).limit(5).select('name email organization partnerType status createdAt'),
       ]);
 
     let team = null;
@@ -87,8 +96,8 @@ exports.getContacts = async (req, res) => {
       ...searchWhere(req.query, ['name', 'email', 'subject']),
       ...(req.query.status ? { status: req.query.status } : {}),
     };
-    const { rows, count } = await Contact.findAndCountAll({ where, order: [['createdAt', 'DESC']], limit, offset });
-    res.json({ success: true, data: rows, total: count, page, pages: Math.ceil(count / limit) });
+    const { rows, count, pages } = await listPage(Contact, where, limit, offset, page);
+    res.json({ success: true, data: rows, total: count, page, pages });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Failed to fetch contacts.' });
   }
@@ -96,9 +105,8 @@ exports.getContacts = async (req, res) => {
 
 exports.updateContact = async (req, res) => {
   try {
-    const item = await Contact.findByPk(req.params.id);
+    const item = await Contact.findByIdAndUpdate(req.params.id, { status: req.body.status }, { new: true });
     if (!item) return res.status(404).json({ success: false, message: 'Not found.' });
-    await item.update({ status: req.body.status });
     res.json({ success: true, data: item });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Update failed.' });
@@ -107,9 +115,8 @@ exports.updateContact = async (req, res) => {
 
 exports.deleteContact = async (req, res) => {
   try {
-    const item = await Contact.findByPk(req.params.id);
+    const item = await Contact.findByIdAndDelete(req.params.id);
     if (!item) return res.status(404).json({ success: false, message: 'Not found.' });
-    await item.destroy();
     res.json({ success: true, message: 'Deleted.' });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Delete failed.' });
@@ -124,8 +131,8 @@ exports.getPrayers = async (req, res) => {
       ...searchWhere(req.query, ['name', 'request']),
       ...(req.query.status ? { status: req.query.status } : {}),
     };
-    const { rows, count } = await Prayer.findAndCountAll({ where, order: [['createdAt', 'DESC']], limit, offset });
-    res.json({ success: true, data: rows, total: count, page, pages: Math.ceil(count / limit) });
+    const { rows, count, pages } = await listPage(Prayer, where, limit, offset, page);
+    res.json({ success: true, data: rows, total: count, page, pages });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Failed to fetch prayers.' });
   }
@@ -133,9 +140,8 @@ exports.getPrayers = async (req, res) => {
 
 exports.updatePrayer = async (req, res) => {
   try {
-    const item = await Prayer.findByPk(req.params.id);
+    const item = await Prayer.findByIdAndUpdate(req.params.id, { status: req.body.status }, { new: true });
     if (!item) return res.status(404).json({ success: false, message: 'Not found.' });
-    await item.update({ status: req.body.status });
     res.json({ success: true, data: item });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Update failed.' });
@@ -144,9 +150,8 @@ exports.updatePrayer = async (req, res) => {
 
 exports.deletePrayer = async (req, res) => {
   try {
-    const item = await Prayer.findByPk(req.params.id);
+    const item = await Prayer.findByIdAndDelete(req.params.id);
     if (!item) return res.status(404).json({ success: false, message: 'Not found.' });
-    await item.destroy();
     res.json({ success: true, message: 'Deleted.' });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Delete failed.' });
@@ -161,8 +166,8 @@ exports.getVolunteers = async (req, res) => {
       ...searchWhere(req.query, ['name', 'email', 'location']),
       ...(req.query.status ? { status: req.query.status } : {}),
     };
-    const { rows, count } = await Volunteer.findAndCountAll({ where, order: [['createdAt', 'DESC']], limit, offset });
-    res.json({ success: true, data: rows, total: count, page, pages: Math.ceil(count / limit) });
+    const { rows, count, pages } = await listPage(Volunteer, where, limit, offset, page);
+    res.json({ success: true, data: rows, total: count, page, pages });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Failed to fetch volunteers.' });
   }
@@ -170,9 +175,8 @@ exports.getVolunteers = async (req, res) => {
 
 exports.updateVolunteer = async (req, res) => {
   try {
-    const item = await Volunteer.findByPk(req.params.id);
+    const item = await Volunteer.findByIdAndUpdate(req.params.id, { status: req.body.status }, { new: true });
     if (!item) return res.status(404).json({ success: false, message: 'Not found.' });
-    await item.update({ status: req.body.status });
     res.json({ success: true, data: item });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Update failed.' });
@@ -181,9 +185,8 @@ exports.updateVolunteer = async (req, res) => {
 
 exports.deleteVolunteer = async (req, res) => {
   try {
-    const item = await Volunteer.findByPk(req.params.id);
+    const item = await Volunteer.findByIdAndDelete(req.params.id);
     if (!item) return res.status(404).json({ success: false, message: 'Not found.' });
-    await item.destroy();
     res.json({ success: true, message: 'Deleted.' });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Delete failed.' });
@@ -198,8 +201,8 @@ exports.getSubscribers = async (req, res) => {
       ...searchWhere(req.query, ['email', 'name']),
       ...(req.query.active !== undefined ? { isActive: req.query.active === 'true' } : {}),
     };
-    const { rows, count } = await Newsletter.findAndCountAll({ where, order: [['createdAt', 'DESC']], limit, offset });
-    res.json({ success: true, data: rows, total: count, page, pages: Math.ceil(count / limit) });
+    const { rows, count, pages } = await listPage(Newsletter, where, limit, offset, page);
+    res.json({ success: true, data: rows, total: count, page, pages });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Failed to fetch subscribers.' });
   }
@@ -207,9 +210,10 @@ exports.getSubscribers = async (req, res) => {
 
 exports.toggleSubscriber = async (req, res) => {
   try {
-    const item = await Newsletter.findByPk(req.params.id);
+    const item = await Newsletter.findById(req.params.id);
     if (!item) return res.status(404).json({ success: false, message: 'Not found.' });
-    await item.update({ isActive: !item.isActive });
+    item.isActive = !item.isActive;
+    await item.save();
     res.json({ success: true, data: item });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Update failed.' });
@@ -218,9 +222,8 @@ exports.toggleSubscriber = async (req, res) => {
 
 exports.deleteSubscriber = async (req, res) => {
   try {
-    const item = await Newsletter.findByPk(req.params.id);
+    const item = await Newsletter.findByIdAndDelete(req.params.id);
     if (!item) return res.status(404).json({ success: false, message: 'Not found.' });
-    await item.destroy();
     res.json({ success: true, message: 'Deleted.' });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Delete failed.' });
@@ -235,8 +238,8 @@ exports.getNews = async (req, res) => {
       ...searchWhere(req.query, ['title', 'category', 'author']),
       ...(req.query.status ? { status: req.query.status } : {}),
     };
-    const { rows, count } = await NewsPost.findAndCountAll({ where, order: [['createdAt', 'DESC']], limit, offset });
-    res.json({ success: true, data: rows, total: count, page, pages: Math.ceil(count / limit) });
+    const { rows, count, pages } = await listPage(NewsPost, where, limit, offset, page);
+    res.json({ success: true, data: rows, total: count, page, pages });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Failed to fetch news.' });
   }
@@ -258,13 +261,13 @@ exports.createNews = async (req, res) => {
 
 exports.updateNews = async (req, res) => {
   try {
-    const item = await NewsPost.findByPk(req.params.id);
+    const item = await NewsPost.findById(req.params.id);
     if (!item) return res.status(404).json({ success: false, message: 'Not found.' });
     const wasNotPublished = item.status !== 'published';
-    await item.update({
-      ...req.body,
+    Object.assign(item, req.body, {
       publishedAt: req.body.status === 'published' && wasNotPublished ? new Date() : item.publishedAt,
     });
+    await item.save();
     res.json({ success: true, data: item });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Update failed.' });
@@ -273,9 +276,8 @@ exports.updateNews = async (req, res) => {
 
 exports.deleteNews = async (req, res) => {
   try {
-    const item = await NewsPost.findByPk(req.params.id);
+    const item = await NewsPost.findByIdAndDelete(req.params.id);
     if (!item) return res.status(404).json({ success: false, message: 'Not found.' });
-    await item.destroy();
     res.json({ success: true, message: 'Deleted.' });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Delete failed.' });
@@ -290,8 +292,8 @@ exports.getResources = async (req, res) => {
       ...searchWhere(req.query, ['title', 'type', 'description']),
       ...(req.query.status ? { status: req.query.status } : {}),
     };
-    const { rows, count } = await Resource.findAndCountAll({ where, order: [['createdAt', 'DESC']], limit, offset });
-    res.json({ success: true, data: rows, total: count, page, pages: Math.ceil(count / limit) });
+    const { rows, count, pages } = await listPage(Resource, where, limit, offset, page);
+    res.json({ success: true, data: rows, total: count, page, pages });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Failed to fetch resources.' });
   }
@@ -310,9 +312,8 @@ exports.createResource = async (req, res) => {
 
 exports.updateResource = async (req, res) => {
   try {
-    const item = await Resource.findByPk(req.params.id);
+    const item = await Resource.findByIdAndUpdate(req.params.id, req.body, { new: true });
     if (!item) return res.status(404).json({ success: false, message: 'Not found.' });
-    await item.update(req.body);
     res.json({ success: true, data: item });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Update failed.' });
@@ -321,9 +322,8 @@ exports.updateResource = async (req, res) => {
 
 exports.deleteResource = async (req, res) => {
   try {
-    const item = await Resource.findByPk(req.params.id);
+    const item = await Resource.findByIdAndDelete(req.params.id);
     if (!item) return res.status(404).json({ success: false, message: 'Not found.' });
-    await item.destroy();
     res.json({ success: true, message: 'Deleted.' });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Delete failed.' });
@@ -333,7 +333,11 @@ exports.deleteResource = async (req, res) => {
 // ── TEAM (Clerk-backed, super_admin only) ─────────────────────
 exports.getTeam = async (req, res) => {
   try {
-    const { data: users } = await clerkClient.users.getUserList({ limit: 200, orderBy: '-created_at' });
+    const { data: users } = await clerkClient.users.getUserList({
+      limit: 200,
+      orderBy: '-created_at',
+      ...(req.query.search ? { query: req.query.search } : {}),
+    });
     res.json({ success: true, data: users.map(toTeamRow) });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Failed to fetch team.' });
@@ -375,8 +379,8 @@ exports.getPartners = async (req, res) => {
       ...searchWhere(req.query, ['name', 'email', 'organization']),
       ...(req.query.status ? { status: req.query.status } : {}),
     };
-    const { rows, count } = await Partner.findAndCountAll({ where, order: [['createdAt', 'DESC']], limit, offset });
-    res.json({ success: true, data: rows, total: count, page, pages: Math.ceil(count / limit) });
+    const { rows, count, pages } = await listPage(Partner, where, limit, offset, page);
+    res.json({ success: true, data: rows, total: count, page, pages });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Failed to fetch partners.' });
   }
@@ -384,9 +388,8 @@ exports.getPartners = async (req, res) => {
 
 exports.updatePartner = async (req, res) => {
   try {
-    const item = await Partner.findByPk(req.params.id);
+    const item = await Partner.findByIdAndUpdate(req.params.id, { status: req.body.status }, { new: true });
     if (!item) return res.status(404).json({ success: false, message: 'Not found.' });
-    await item.update({ status: req.body.status });
     res.json({ success: true, data: item });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Update failed.' });
@@ -395,9 +398,8 @@ exports.updatePartner = async (req, res) => {
 
 exports.deletePartner = async (req, res) => {
   try {
-    const item = await Partner.findByPk(req.params.id);
+    const item = await Partner.findByIdAndDelete(req.params.id);
     if (!item) return res.status(404).json({ success: false, message: 'Not found.' });
-    await item.destroy();
     res.json({ success: true, message: 'Deleted.' });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Delete failed.' });

@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useClerk } from '@clerk/clerk-react';
 import { FiMenu, FiX, FiChevronDown, FiUser, FiLogIn } from 'react-icons/fi';
 import { useRole } from '../hooks/useRole';
+import logo from '../assets/logo.png';
 
 const navLinks = [
   { label: 'Home', path: '/' },
@@ -95,14 +96,15 @@ export default function Navbar() {
               width: '48px',
               height: '48px',
               borderRadius: '12px',
-              background: 'linear-gradient(135deg, var(--gold), var(--gold-light))',
+              background: 'white',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               flexShrink: 0,
-              boxShadow: '0 2px 12px rgba(212,160,23,0.4)',
+              boxShadow: '0 2px 12px rgba(0,0,0,0.15)',
+              padding: '4px',
             }}>
-              <span style={{ fontFamily: 'var(--font-cinzel)', fontWeight: 700, color: 'var(--dark-green)', fontSize: '1rem' }}>E</span>
+              <img src={logo} alt="EECMI logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
             </div>
             <div>
               <div style={{ fontFamily: 'var(--font-cinzel)', fontWeight: 700, color: 'white', fontSize: '1rem', letterSpacing: '0.05em', lineHeight: 1.2 }}>

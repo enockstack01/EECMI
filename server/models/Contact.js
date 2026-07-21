@@ -1,34 +1,13 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/db');
+const { mongoose } = require('../config/db');
+const { cleanJSON } = require('../config/schemaOptions');
 
-const Contact = sequelize.define('Contact', {
-  name: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  email: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    validate: { isEmail: true },
-  },
-  phone: {
-    type: DataTypes.STRING,
-  },
-  subject: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  message: {
-    type: DataTypes.TEXT,
-    allowNull: false,
-  },
-  status: {
-    type: DataTypes.ENUM('new', 'read', 'replied'),
-    defaultValue: 'new',
-  },
-}, {
-  tableName: 'contacts',
-  timestamps: true,
-});
+const contactSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  email: { type: String, required: true },
+  phone: { type: String },
+  subject: { type: String, required: true },
+  message: { type: String, required: true },
+  status: { type: String, enum: ['new', 'read', 'replied'], default: 'new' },
+}, { timestamps: true, collection: 'contacts', toJSON: cleanJSON });
 
-module.exports = Contact;
+module.exports = mongoose.models.Contact || mongoose.model('Contact', contactSchema);

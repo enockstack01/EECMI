@@ -1,5 +1,9 @@
 // Shared Clerk <SignIn/>/<SignUp/>/<UserProfile/> theming to match the EECMI brand system.
 export const clerkAppearance = {
+  layout: {
+    logoImageUrl: `${process.env.PUBLIC_URL}/logo.png`,
+    logoPlacement: 'inside',
+  },
   variables: {
     colorPrimary: '#2D6A4F',
     colorText: '#111827',
