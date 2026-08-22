@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import CountUp from 'react-countup';
-import { FiArrowRight, FiHeart, FiLock, FiTrendingUp, FiHome, FiBarChart2 } from 'react-icons/fi';
+import { FiArrowRight, FiHeart, FiLock, FiTrendingUp, FiHome, FiBarChart2, FiVolume2, FiVolumeX } from 'react-icons/fi';
 
 const stats = [
   { value: 5000, suffix: '+', label: 'Lives Transformed', desc: "Individuals who have experienced the ministry's direct impact" },
@@ -76,6 +76,16 @@ function StatCard({ value, suffix, label, desc, inView, delay }) {
 
 export default function Impact() {
   const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.1 });
+  const [videoMuted, setVideoMuted] = useState(true);
+  const videoRef = useRef(null);
+
+  const toggleVideoSound = () => {
+    setVideoMuted(m => {
+      const next = !m;
+      if (videoRef.current) videoRef.current.muted = next;
+      return next;
+    });
+  };
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4 }}>
@@ -121,14 +131,58 @@ export default function Impact() {
             transition={{ duration: 0.7 }}
             style={{
               maxWidth: '900px', margin: '0 auto',
-              borderRadius: '20px', overflow: 'hidden',
+              padding: '8px',
+              borderRadius: '26px',
+              background: 'linear-gradient(135deg, var(--forest-green), var(--gold), var(--navy))',
               boxShadow: 'var(--shadow-xl)',
-              border: '1px solid var(--gray-100)',
             }}
           >
-            <video controls playsInline style={{ width: '100%', display: 'block', background: '#000' }}>
-              <source src="/Impact_video.mp4" type="video/mp4" />
-            </video>
+            <div style={{ position: 'relative', borderRadius: '20px', overflow: 'hidden', background: '#000' }}>
+              <video
+                ref={videoRef}
+                autoPlay muted={videoMuted} loop playsInline
+                style={{ width: '100%', display: 'block', aspectRatio: '16 / 9', objectFit: 'cover' }}
+              >
+                <source src="/Impact_video.mp4" type="video/mp4" />
+              </video>
+
+              {/* Legibility gradient for overlay controls */}
+              <div style={{
+                position: 'absolute', inset: 0, pointerEvents: 'none',
+                background: 'linear-gradient(to top, rgba(0,0,0,0.4) 0%, transparent 25%), linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, transparent 22%)',
+              }} />
+
+              {/* Corner badge */}
+              <div style={{
+                position: 'absolute', top: '1.25rem', left: '1.25rem', zIndex: 2,
+                display: 'flex', alignItems: 'center', gap: '0.5rem',
+                background: 'rgba(13,33,55,0.55)', backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(212,160,23,0.4)',
+                borderRadius: '50px', padding: '0.4rem 1rem',
+                color: 'var(--gold-light)', fontSize: '0.75rem', fontWeight: 600,
+                letterSpacing: '0.08em', textTransform: 'uppercase',
+              }}>
+                <span style={{ width: '6px', height: '6px', background: 'var(--gold)', borderRadius: '50%' }} />
+                EECMI in Action
+              </div>
+
+              {/* Sound toggle */}
+              <button
+                onClick={toggleVideoSound}
+                aria-label={videoMuted ? 'Unmute video' : 'Mute video'}
+                style={{
+                  position: 'absolute', bottom: '1.25rem', right: '1.25rem', zIndex: 2,
+                  width: '46px', height: '46px', borderRadius: '50%',
+                  background: 'rgba(13,33,55,0.55)', backdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(212,160,23,0.5)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  cursor: 'pointer', color: 'var(--gold-light)',
+                  transition: 'var(--transition)',
+                }}
+              >
+                {videoMuted ? <FiVolumeX size={18} /> : <FiVolume2 size={18} />}
+              </button>
+            </div>
           </motion.div>
         </div>
       </section>
