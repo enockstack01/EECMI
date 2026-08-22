@@ -100,6 +100,39 @@ export default function Impact() {
         </div>
       </section>
 
+      {/* Impact Video */}
+      <section style={{ padding: '5rem 0', background: 'white' }}>
+        <div className="container">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            style={{ textAlign: 'center', marginBottom: '3rem' }}
+          >
+            <div className="section-badge">See It For Yourself</div>
+            <h2 className="section-title">Our Impact in Motion</h2>
+            <div className="divider" style={{ margin: '0 auto' }} />
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.97 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7 }}
+            style={{
+              maxWidth: '900px', margin: '0 auto',
+              borderRadius: '20px', overflow: 'hidden',
+              boxShadow: 'var(--shadow-xl)',
+              border: '1px solid var(--gray-100)',
+            }}
+          >
+            <video controls playsInline style={{ width: '100%', display: 'block', background: '#000' }}>
+              <source src="/Impact_video.mp4" type="video/mp4" />
+            </video>
+          </motion.div>
+        </div>
+      </section>
+
       {/* Stats Grid */}
       <section style={{ padding: '6rem 0', background: 'var(--cream)' }} ref={ref}>
         <div className="container">

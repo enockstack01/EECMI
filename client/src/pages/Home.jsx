@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
@@ -6,6 +6,7 @@ import {
   FiArrowRight, FiPlay, FiHeart, FiUsers, FiHome, FiStar,
   FiChevronLeft, FiChevronRight, FiCheck,
   FiLock, FiUnlock, FiTrendingUp, FiGlobe, FiUser,
+  FiVolume2, FiVolumeX,
 } from 'react-icons/fi';
 
 const fadeUp = (delay = 0) => ({
@@ -158,11 +159,21 @@ function ProgramCard({ item, index }) {
 
 export default function Home() {
   const [testimonialIdx, setTestimonialIdx] = useState(0);
+  const [heroMuted, setHeroMuted] = useState(true);
+  const heroVideoRef = useRef(null);
 
   useEffect(() => {
     const t = setInterval(() => setTestimonialIdx(i => (i + 1) % testimonials.length), 5000);
     return () => clearInterval(t);
   }, []);
+
+  const toggleHeroSound = () => {
+    setHeroMuted(m => {
+      const next = !m;
+      if (heroVideoRef.current) heroVideoRef.current.muted = next;
+      return next;
+    });
+  };
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4 }}>
@@ -172,9 +183,10 @@ export default function Home() {
         position: 'relative', minHeight: '100vh',
         display: 'flex', alignItems: 'center', overflow: 'hidden',
       }}>
-        {/* Video background — replace src with actual ministry footage */}
+        {/* Video background */}
         <video
-          autoPlay muted loop playsInline
+          ref={heroVideoRef}
+          autoPlay muted={heroMuted} loop playsInline
           poster="https://images.unsplash.com/photo-1531545514256-b1400bc00f31?w=1600&q=80"
           style={{
             position: 'absolute', top: 0, left: 0,
@@ -182,11 +194,25 @@ export default function Home() {
             objectFit: 'cover', zIndex: 0,
           }}
         >
-          <source
-            src="https://videos.pexels.com/video-files/3943968/3943968-hd_1920_1080_25fps.mp4"
-            type="video/mp4"
-          />
+          <source src="/Impact_video.mp4" type="video/mp4" />
         </video>
+
+        {/* Sound toggle */}
+        <button
+          onClick={toggleHeroSound}
+          aria-label={heroMuted ? 'Unmute background video' : 'Mute background video'}
+          style={{
+            position: 'absolute', bottom: '2rem', right: '2rem', zIndex: 3,
+            width: '46px', height: '46px', borderRadius: '50%',
+            background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255,255,255,0.3)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', color: 'white',
+            transition: 'var(--transition)',
+          }}
+        >
+          {heroMuted ? <FiVolumeX size={18} /> : <FiVolume2 size={18} />}
+        </button>
 
         {/* Overlay */}
         <div style={{
