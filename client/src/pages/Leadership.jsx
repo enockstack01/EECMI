@@ -1,33 +1,23 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { FiLinkedin, FiMail } from 'react-icons/fi';
+import { useSiteContent } from '../hooks/useSiteContent';
 
-const leadership = [
-  {
-    name: 'Founder & Executive Director',
-    title: 'Ecclessia Eden Commission Ministries International',
-    bio: 'Visionary leader and founder of EECMI, called by God to serve the marginalized and forgotten. With a deep passion for prison ministry and community transformation, the Founder has built an organization that touches thousands of lives across Uganda through holistic, Christ centered outreach.',
-    role: 'Founder',
-    initials: 'FD',
-    color: 'linear-gradient(135deg, var(--dark-green), var(--forest-green))',
-    responsibilities: [
-      'Strategic vision and ministry direction',
-      'Prison ministry leadership',
-      'Partnership development',
-      'Community engagement',
-      'Organizational governance',
-    ],
-  },
-];
-
-const advisoryBoard = [
-  { name: 'Advisory Board Member', role: 'Spiritual Oversight', initials: 'AB', color: 'linear-gradient(135deg, var(--navy-dark), var(--navy))' },
-  { name: 'Advisory Board Member', role: 'Financial Stewardship', initials: 'AB', color: 'linear-gradient(135deg, var(--earth), var(--earth-light))' },
-  { name: 'Advisory Board Member', role: 'Community Development', initials: 'AB', color: 'linear-gradient(135deg, #4C1D95, #7C3AED)' },
-  { name: 'Advisory Board Member', role: 'Legal & Governance', initials: 'AB', color: 'linear-gradient(135deg, #0E7490, #0891B2)' },
+const FOUNDER_BG = 'linear-gradient(135deg, var(--dark-green), var(--forest-green))';
+const ADVISORY_BG = [
+  'linear-gradient(135deg, var(--navy-dark), var(--navy))',
+  'linear-gradient(135deg, var(--earth), var(--earth-light))',
+  'linear-gradient(135deg, #4C1D95, #7C3AED)',
+  'linear-gradient(135deg, #0E7490, #0891B2)',
 ];
 
 export default function Leadership() {
+  const { content } = useSiteContent();
+  const leadership = [{ ...content.leadership.founder, color: FOUNDER_BG }];
+  const advisoryBoard = (content.leadership.advisory || []).map((m, i) => ({
+    ...m, color: ADVISORY_BG[i % ADVISORY_BG.length],
+  }));
+
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4 }}>
 

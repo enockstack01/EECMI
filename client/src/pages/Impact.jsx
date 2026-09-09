@@ -3,53 +3,15 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import CountUp from 'react-countup';
-import { FiArrowRight, FiHeart, FiLock, FiTrendingUp, FiHome, FiBarChart2, FiVolume2, FiVolumeX } from 'react-icons/fi';
+import { FiArrowRight, FiHeart, FiLock, FiTrendingUp, FiHome, FiBarChart2, FiVolume2, FiVolumeX, FiUser } from 'react-icons/fi';
+import { useSiteContent } from '../hooks/useSiteContent';
 
-const stats = [
-  { value: 5000, suffix: '+', label: 'Lives Transformed', desc: "Individuals who have experienced the ministry's direct impact" },
-  { value: 12, suffix: '+', label: 'Prison Facilities', desc: 'Correctional facilities receiving our regular outreach' },
-  { value: 800, suffix: '+', label: 'Women Empowered', desc: 'Single mothers and vulnerable women in our programs' },
-  { value: 1200, suffix: '+', label: 'Children Supported', desc: 'Vulnerable children receiving education and care' },
-  { value: 500, suffix: '+', label: 'Youth Trained', desc: 'Young people equipped with vocational skills' },
-  { value: 200, suffix: '+', label: 'Families Restored', desc: 'Families reconciled and strengthened through counseling' },
-  { value: 800, suffix: '+', label: 'Volunteers', desc: 'Dedicated servants giving their time and skills' },
-  { value: 15, suffix: '+', label: 'Years of Ministry', desc: 'Years of faithful service in Uganda and beyond' },
-];
-
-const stories = [
-  {
-    name: 'David M.',
-    role: 'Former Prisoner, Kampala',
-    story: 'I entered prison as a broken man — no hope, no purpose. The EECMI prison team brought the Gospel to my cell. Today, 3 years after release, I run a carpentry business, my family is restored, and I volunteer in the same prison that once held me.',
-    program: 'Prison Outreach',
-    icon: FiLock,
-    color: 'var(--forest-green)',
-  },
-  {
-    name: 'Grace N.',
-    role: "Women's Empowerment Graduate",
-    story: "As a single mother of 4, I had no income and no hope. EECMI's women's program gave me tailoring skills, business training, and a savings group. Three years later I employ 5 other women in my community.",
-    program: 'Women Empowerment',
-    icon: FiHeart,
-    color: 'var(--earth)',
-  },
-  {
-    name: 'James O.',
-    role: 'Youth Skills Program Graduate',
-    story: "I was an unemployed school dropout heading toward gang involvement. EECMI's youth program caught me, trained me in IT skills, and helped me launch a small tech repair business. Now I mentor 12 other youth.",
-    program: 'Youth Empowerment',
-    icon: FiTrendingUp,
-    color: '#7C3AED',
-  },
-  {
-    name: 'Sarah & Peter K.',
-    role: 'Family Strengthening Program',
-    story: "Our marriage was on the verge of collapse. Through EECMI's marriage enrichment retreats and counseling, we discovered forgiveness, rebuilt trust, and our family is now a testimony of God's restoring power.",
-    program: 'Family Strengthening',
-    icon: FiHome,
-    color: '#0891B2',
-  },
-];
+const STORY_META = {
+  'Prison Outreach': { icon: FiLock, color: 'var(--forest-green)' },
+  'Women Empowerment': { icon: FiHeart, color: 'var(--earth)' },
+  'Youth Empowerment': { icon: FiTrendingUp, color: '#7C3AED' },
+  'Family Strengthening': { icon: FiHome, color: '#0891B2' },
+};
 
 function StatCard({ value, suffix, label, desc, inView, delay }) {
   return (
@@ -75,6 +37,13 @@ function StatCard({ value, suffix, label, desc, inView, delay }) {
 }
 
 export default function Impact() {
+  const { content } = useSiteContent();
+  const stats = content.impactStats || [];
+  const stories = (content.stories || []).map((s) => ({
+    ...s,
+    icon: STORY_META[s.program]?.icon || FiUser,
+    color: STORY_META[s.program]?.color || 'var(--forest-green)',
+  }));
   const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.1 });
   const [videoMuted, setVideoMuted] = useState(true);
   const videoRef = useRef(null);
@@ -102,9 +71,8 @@ export default function Impact() {
             <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: 'clamp(2rem, 5vw, 3.5rem)', color: 'white', fontWeight: 700, marginBottom: '1.25rem', lineHeight: 1.2 }}>
               Measuring God's<br />Transforming Power
             </h1>
-            <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: '1.1rem', maxWidth: '540px', margin: '0 auto', lineHeight: 1.8 }}>
-              Every number represents a real person whose life has been touched, changed,
-              and redeemed through Christ centered ministry.
+            <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: '1.1rem', maxWidth: '520px', margin: '0 auto', lineHeight: 1.8 }}>
+              Every number is a real person whose life has been changed through Christ.
             </p>
           </motion.div>
         </div>

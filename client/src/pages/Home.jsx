@@ -278,11 +278,10 @@ export default function Home() {
 
             <motion.p {...fadeUp(0.45)} style={{
               color: 'rgba(255,255,255,0.82)', fontSize: 'clamp(1rem, 2.5vw, 1.2rem)',
-              lineHeight: 1.8, marginBottom: '2.5rem', maxWidth: '620px',
+              lineHeight: 1.8, marginBottom: '2.5rem', maxWidth: '560px',
             }}>
-              Ecclessia Eden Commission Ministries International is a Christ centered ministry committed to
-              restoring lives, rebuilding families, empowering vulnerable people, and transforming communities
-              through holistic ministry, discipleship, compassion, and sustainable development.
+              A Christ centered ministry restoring lives, rebuilding families, and transforming
+              communities across Uganda.
             </motion.p>
 
             <motion.div {...fadeUp(0.6)} style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
@@ -393,16 +392,6 @@ export default function Home() {
               }}>LORD</span> rises upon you."
             </blockquote>
 
-            <p style={{
-              color: 'rgba(255,255,255,0.65)',
-              fontSize: '1rem',
-              maxWidth: '600px',
-              margin: '0 auto',
-              lineHeight: 1.8,
-            }}>
-              This is the heartbeat of our ministry — bringing God's transforming light to the darkest places,
-              restoring dignity and hope to those society has forgotten.
-            </p>
           </motion.div>
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.5rem', marginTop: '2rem' }}>
@@ -427,14 +416,10 @@ export default function Home() {
               <div className="section-badge">Who We Are</div>
               <h2 className="section-title">A Ministry Built on<br /><em>Christ's Love</em></h2>
               <div className="divider" />
-              <p style={{ color: 'var(--gray-500)', lineHeight: 1.9, marginBottom: '1.25rem', fontSize: '1rem' }}>
-                Ecclessia Eden Commission Ministries International is a nonprofit Christian ministry
-                serving prisoners, former prisoners, single mothers, vulnerable children, unemployed
-                youth, and underserved communities through holistic outreach.
-              </p>
               <p style={{ color: 'var(--gray-500)', lineHeight: 1.9, marginBottom: '2rem', fontSize: '1rem' }}>
-                Founded in Kampala, Uganda, we believe that every person — regardless of their past —
-                carries infinite worth and deserves to experience God's restorative love and power.
+                Founded in Kampala, Uganda, we serve prisoners, single mothers, vulnerable children,
+                and unemployed youth — because every person carries infinite worth.{' '}
+                <Link to="/about" style={{ color: 'var(--forest-green)', fontWeight: 600 }}>Learn more</Link>.
               </p>
 
               <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
@@ -764,9 +749,8 @@ export default function Home() {
             <h2 style={{ fontFamily: 'var(--font-serif)', color: 'white', fontSize: 'clamp(2rem, 5vw, 3.5rem)', fontWeight: 700, marginBottom: '1.25rem', lineHeight: 1.2 }}>
               Be the Change<br />Someone Needs Today
             </h2>
-            <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: '1.1rem', maxWidth: '560px', margin: '0 auto 2.5rem', lineHeight: 1.8 }}>
-              Your generosity, time, and prayer can transform a life forever.
-              Together we can shine God's light into the darkest places.
+            <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: '1.1rem', maxWidth: '480px', margin: '0 auto 2.5rem', lineHeight: 1.8 }}>
+              Your time, partnership, and prayer can transform a life forever.
             </p>
             <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
               <Link to="/get-involved#donate" className="btn btn-gold" style={{ fontSize: '1rem', padding: '1rem 2.5rem' }}>
