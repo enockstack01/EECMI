@@ -17,11 +17,14 @@ import GetInvolved from './pages/GetInvolved';
 import Resources from './pages/Resources';
 import News from './pages/News';
 import NewsDetail from './pages/NewsDetail';
+import Devotions from './pages/Devotions';
+import DevotionDetail from './pages/DevotionDetail';
 import Contact from './pages/Contact';
 import Leadership from './pages/Leadership';
 import UserLogin from './pages/UserLogin';
 import UserRegister from './pages/UserRegister';
 import UserDashboard from './pages/UserDashboard';
+import Notifications from './pages/Notifications';
 import PostAuth from './pages/PostAuth';
 
 import AdminApp from './admin/AdminApp';
@@ -51,12 +54,15 @@ function AppContent() {
             <Route path="/resources" element={<Resources />} />
             <Route path="/news" element={<News />} />
             <Route path="/news/:id" element={<NewsDetail />} />
+            <Route path="/devotions" element={<Devotions />} />
+            <Route path="/devotions/:id" element={<DevotionDetail />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/leadership" element={<Leadership />} />
             <Route path="/login/*" element={<UserLogin />} />
             <Route path="/register/*" element={<UserRegister />} />
             <Route path="/post-auth" element={<PostAuth />} />
             <Route path="/dashboard" element={<RequireRole roles={null}><UserDashboard /></RequireRole>} />
+            <Route path="/notifications" element={<RequireRole roles={null}><Notifications /></RequireRole>} />
           </Routes>
         </AnimatePresence>
       </main>

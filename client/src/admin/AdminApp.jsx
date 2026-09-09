@@ -10,6 +10,8 @@ import VolunteersPage from './pages/VolunteersPage';
 import SubscribersPage from './pages/SubscribersPage';
 import NewsPage from './pages/NewsPage';
 import ResourcesPage from './pages/ResourcesPage';
+import DevotionsPage from './pages/DevotionsPage';
+import SiteContentPage from './pages/SiteContentPage';
 import TeamPage from './pages/TeamPage';
 import PartnersPage from './pages/PartnersPage';
 
@@ -31,7 +33,9 @@ export default function AdminApp() {
                   <Route path="volunteers"  element={<VolunteersPage />} />
                   <Route path="subscribers" element={<SubscribersPage />} />
                   <Route path="news"        element={<NewsPage />} />
+                  <Route path="devotions"   element={<DevotionsPage />} />
                   <Route path="resources"   element={<ResourcesPage />} />
+                  <Route path="content"     element={<SiteContentPage />} />
                   <Route path="partners"    element={<PartnersPage />} />
                   <Route path="team"        element={<TeamPage />} />
                 </Routes>

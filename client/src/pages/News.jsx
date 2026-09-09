@@ -1,37 +1,58 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import axios from 'axios';
 import { FiCalendar, FiArrowRight, FiTag } from 'react-icons/fi';
-import { newsArticles, categories, categoryColors } from '../data/newsArticles';
+import { newsArticles as fallbackArticles, categoryColors } from '../data/newsArticles';
+
+const fmtDate = (d) => {
+  if (!d) return '';
+  const dt = new Date(d);
+  return Number.isNaN(dt.getTime()) ? d : dt.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+};
 
 export default function News() {
+  const [articles, setArticles] = useState(fallbackArticles);
   const [activeCategory, setActiveCategory] = useState('All');
-  const filtered = activeCategory === 'All' ? newsArticles : newsArticles.filter(a => a.category === activeCategory);
-  const featured = newsArticles.find(a => a.featured);
+
+  useEffect(() => {
+    axios.get('/api/news')
+      .then((res) => {
+        const data = res.data?.data || [];
+        if (data.length) {
+          setArticles(data.map((a) => ({ ...a, date: fmtDate(a.publishedAt || a.createdAt) })));
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const categories = useMemo(
+    () => ['All', ...Array.from(new Set(articles.map((a) => a.category).filter(Boolean)))],
+    [articles],
+  );
+  const featured = articles.find((a) => a.featured);
+  const filtered = activeCategory === 'All' ? articles : articles.filter((a) => a.category === activeCategory);
+  const grid = activeCategory === 'All' ? articles.filter((a) => !a.featured) : filtered;
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4 }}>
-
-      {/* Hero */}
       <section style={{ background: 'linear-gradient(135deg, var(--dark-green) 0%, var(--navy-dark) 100%)', padding: '10rem 0 5rem', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', inset: 0, opacity: 0.04, backgroundImage: 'repeating-linear-gradient(45deg, white 0, white 1px, transparent 0, transparent 50%)', backgroundSize: '20px 20px' }} />
         <div className="container" style={{ position: 'relative', zIndex: 2, textAlign: 'center' }}>
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
             <div style={{ color: 'var(--gold)', fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '1rem' }}>News & Updates</div>
             <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: 'clamp(2rem, 5vw, 3.5rem)', color: 'white', fontWeight: 700, marginBottom: '1.25rem', lineHeight: 1.2 }}>
-              Ministry News &<br />Kingdom Updates
+              Ministry News & Updates
             </h1>
-            <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: '1.1rem', maxWidth: '540px', margin: '0 auto', lineHeight: 1.8 }}>
-              Stay informed about God's work through EECMI. Stories, updates, and testimonies from the frontlines.
+            <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: '1.1rem', maxWidth: '520px', margin: '0 auto', lineHeight: 1.8 }}>
+              Stories and updates from the frontlines of God's work through EECMI.
             </p>
           </motion.div>
         </div>
       </section>
 
-      <section style={{ padding: '6rem 0', background: 'var(--cream)' }}>
+      <section style={{ padding: '5rem 0 7rem', background: 'var(--cream)' }}>
         <div className="container">
-
-          {/* Featured Article */}
           {featured && activeCategory === 'All' && (
             <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} style={{ marginBottom: '3rem' }}>
               <div style={{ background: 'linear-gradient(135deg, var(--dark-green), var(--navy-dark))', borderRadius: '20px', padding: '3rem', color: 'white', position: 'relative', overflow: 'hidden' }}>
@@ -43,19 +64,13 @@ export default function News() {
                       <FiTag size={12} /> {featured.category}
                     </span>
                   </div>
-                  <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: 'clamp(1.4rem, 3.5vw, 2rem)', fontWeight: 700, marginBottom: '1rem', maxWidth: '600px', lineHeight: 1.3 }}>
-                    {featured.title}
-                  </h2>
-                  <p style={{ color: 'rgba(255,255,255,0.8)', lineHeight: 1.8, maxWidth: '560px', marginBottom: '1.5rem', fontSize: '1rem' }}>
-                    {featured.excerpt}
-                  </p>
+                  <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: 'clamp(1.4rem, 3.5vw, 2rem)', fontWeight: 700, marginBottom: '1rem', maxWidth: '600px', lineHeight: 1.3 }}>{featured.title}</h2>
+                  <p style={{ color: 'rgba(255,255,255,0.8)', lineHeight: 1.8, maxWidth: '560px', marginBottom: '1.5rem', fontSize: '1rem' }}>{featured.excerpt}</p>
                   <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                    <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                      <FiCalendar size={13} /> {featured.date}
-                    </span>
-                    <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem' }}>{featured.readTime}</span>
+                    <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}><FiCalendar size={13} /> {featured.date}</span>
+                    {featured.readTime && <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem' }}>{featured.readTime}</span>}
                   </div>
-                  <Link to={`/news/${featured.id}`} style={{ marginTop: '1.5rem', display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'var(--gold)', color: 'white', padding: '0.75rem 1.75rem', borderRadius: '50px', border: 'none', cursor: 'pointer', fontWeight: 600 }}>
+                  <Link to={`/news/${featured.id}`} style={{ marginTop: '1.5rem', display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'var(--gold)', color: 'white', padding: '0.75rem 1.75rem', borderRadius: '50px', fontWeight: 600 }}>
                     Read Full Story <FiArrowRight size={16} />
                   </Link>
                 </div>
@@ -63,34 +78,26 @@ export default function News() {
             </motion.div>
           )}
 
-          {/* Category filter */}
           <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap', marginBottom: '2.5rem' }}>
-            {categories.map(cat => (
+            {categories.map((cat) => (
               <button key={cat} onClick={() => setActiveCategory(cat)} style={{
                 padding: '0.4rem 1rem',
                 background: activeCategory === cat ? 'var(--forest-green)' : 'white',
                 color: activeCategory === cat ? 'white' : 'var(--gray-700)',
-                border: activeCategory === cat ? '2px solid var(--forest-green)' : '2px solid var(--gray-200)',
-                borderRadius: '50px', fontWeight: 500, fontSize: '0.825rem',
-                cursor: 'pointer', transition: 'var(--transition)',
+                border: `2px solid ${activeCategory === cat ? 'var(--forest-green)' : 'var(--gray-200)'}`,
+                borderRadius: '50px', fontWeight: 500, fontSize: '0.825rem', cursor: 'pointer',
               }}>
                 {cat}
               </button>
             ))}
           </div>
 
-          {/* Articles grid */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
-            {(activeCategory === 'All' ? newsArticles.filter(a => !a.featured) : filtered).map((article, i) => (
+            {grid.map((article, i) => (
               <motion.article key={article.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.05, duration: 0.4 }}
-                style={{
-                  background: 'white', borderRadius: '16px', overflow: 'hidden',
-                  border: '1px solid var(--gray-100)', boxShadow: 'var(--shadow-sm)',
-                  transition: 'var(--transition)',
-                }}
+                style={{ background: 'white', borderRadius: '16px', overflow: 'hidden', border: '1px solid var(--gray-100)', boxShadow: 'var(--shadow-sm)' }}
                 whileHover={{ y: -4, boxShadow: 'var(--shadow-lg)' }}
               >
                 <Link to={`/news/${article.id}`} style={{ display: 'block', color: 'inherit' }}>
@@ -106,19 +113,13 @@ export default function News() {
                         {article.category}
                       </span>
                     </div>
-                    <h3 style={{ fontFamily: 'var(--font-serif)', fontWeight: 700, fontSize: '1.05rem', color: 'var(--gray-900)', marginBottom: '0.75rem', lineHeight: 1.4 }}>
-                      {article.title}
-                    </h3>
-                    <p style={{ color: 'var(--gray-500)', fontSize: '0.875rem', lineHeight: 1.7, marginBottom: '1.25rem' }}>
-                      {article.excerpt}
-                    </p>
+                    <h3 style={{ fontFamily: 'var(--font-serif)', fontWeight: 700, fontSize: '1.05rem', color: 'var(--gray-900)', marginBottom: '0.75rem', lineHeight: 1.4 }}>{article.title}</h3>
+                    <p style={{ color: 'var(--gray-500)', fontSize: '0.875rem', lineHeight: 1.7, marginBottom: '1.25rem' }}>{article.excerpt}</p>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <div style={{ color: 'var(--gray-400)', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                        <FiCalendar size={12} /> {article.date} · {article.readTime}
+                        <FiCalendar size={12} /> {article.date}{article.readTime ? ` · ${article.readTime}` : ''}
                       </div>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: 'var(--forest-green)', fontSize: '0.8rem', fontWeight: 600 }}>
-                        Read <FiArrowRight size={13} />
-                      </span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: 'var(--forest-green)', fontSize: '0.8rem', fontWeight: 600 }}>Read <FiArrowRight size={13} /></span>
                     </div>
                   </div>
                 </Link>

@@ -21,6 +21,12 @@ export function AdminAuthProvider({ children }) {
     });
   }, [getToken]);
 
+  // Multipart uploads — no Content-Type header so the browser sets the boundary.
+  const authUpload = useCallback(async (url, formData, method = 'POST') => {
+    const token = await getToken();
+    return fetch(url, { method, body: formData, headers: { Authorization: `Bearer ${token}` } });
+  }, [getToken]);
+
   const admin = useMemo(() => {
     if (!user) return null;
     return {
@@ -34,7 +40,7 @@ export function AdminAuthProvider({ children }) {
 
   const logout = useCallback(() => signOut({ redirectUrl: '/' }), [signOut]);
 
-  const value = { admin, role, isSuperAdmin, isAuthenticated: isSignedIn, isLoaded, authFetch, logout };
+  const value = { admin, role, isSuperAdmin, isAuthenticated: isSignedIn, isLoaded, authFetch, authUpload, logout };
 
   return <AdminAuthContext.Provider value={value}>{children}</AdminAuthContext.Provider>;
 }

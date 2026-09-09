@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useClerk } from '@clerk/clerk-react';
 import { FiMenu, FiX, FiChevronDown, FiUser, FiLogIn } from 'react-icons/fi';
 import { useRole } from '../hooks/useRole';
+import NotificationBell from './NotificationBell';
 import logo from '../assets/logo.png';
 
 const navLinks = [
@@ -20,7 +21,7 @@ const navLinks = [
       { label: 'Request Prayer', path: '/get-involved#prayer' },
     ]
   },
-  { label: 'Leadership', path: '/leadership' },
+  { label: 'Devotions', path: '/devotions' },
   { label: 'Resources', path: '/resources' },
   { label: 'News', path: '/news' },
   { label: 'Contact', path: '/contact' },
@@ -181,6 +182,7 @@ export default function Navbar() {
             ))}
             {isSignedIn ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginLeft: '0.75rem' }}>
+                <NotificationBell />
                 <Link to={dashboardPath} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'rgba(255,255,255,0.88)', fontSize: '0.875rem', padding: '0.5rem 0.9rem', borderRadius: '8px', transition: 'var(--transition)' }}
                   onMouseOver={e => e.currentTarget.style.color = 'var(--gold-light)'}
                   onMouseOut={e => e.currentTarget.style.color = 'rgba(255,255,255,0.88)'}
@@ -255,6 +257,9 @@ export default function Navbar() {
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} style={{ marginTop: '2rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 {isSignedIn ? (
                   <>
+                    <Link to="/notifications" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '8px', padding: '0.75rem', color: 'white', fontSize: '1rem' }} onClick={() => setMobileOpen(false)}>
+                      Notifications
+                    </Link>
                     <Link to={dashboardPath} className="btn btn-gold" style={{ justifyContent: 'center', fontSize: '1rem' }} onClick={() => setMobileOpen(false)}>
                       <FiUser size={16} /> My Dashboard
                     </Link>

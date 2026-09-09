@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   FiGrid, FiMail, FiHeart, FiUsers, FiSend, FiFileText,
-  FiBookOpen, FiLink, FiShield, FiMenu, FiLogOut,
+  FiBookOpen, FiLink, FiShield, FiMenu, FiLogOut, FiSun, FiEdit3,
 } from 'react-icons/fi';
 import { useAdminAuth } from '../context/AdminAuthContext';
 import logo from '../../assets/logo.png';
@@ -14,8 +14,10 @@ const NAV = [
   { to: '/admin/prayers',      label: 'Prayers',      icon: FiHeart },
   { to: '/admin/volunteers',   label: 'Volunteers',   icon: FiUsers },
   { to: '/admin/subscribers',  label: 'Subscribers',  icon: FiSend },
-  { to: '/admin/news',         label: 'News',         icon: FiFileText },
+  { to: '/admin/news',         label: 'News & Updates', icon: FiFileText },
+  { to: '/admin/devotions',    label: 'Devotions',    icon: FiSun },
   { to: '/admin/resources',    label: 'Resources',    icon: FiBookOpen },
+  { to: '/admin/content',      label: 'Platform Content', icon: FiEdit3 },
   { to: '/admin/partners',     label: 'Partners',     icon: FiLink },
   { to: '/admin/team',         label: 'Team',         icon: FiShield, superAdminOnly: true },
 ];
