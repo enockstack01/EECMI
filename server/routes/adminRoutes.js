@@ -1,6 +1,9 @@
 const router = require('express').Router();
 const { requireRole } = require('../middleware/clerkAuth');
 const c = require('../controllers/adminController');
+const devotions = require('../controllers/adminDevotionController');
+const content = require('../controllers/adminContentController');
+const { uploadSingle } = require('../middleware/upload');
 
 router.use(requireRole('admin', 'editor', 'super_admin'));
 
@@ -43,6 +46,19 @@ router.delete('/resources/:id',  c.deleteResource);
 router.get('/partners',          c.getPartners);
 router.patch('/partners/:id',    c.updatePartner);
 router.delete('/partners/:id',   c.deletePartner);
+
+// Devotion materials
+router.get('/devotions/upload-status', devotions.uploadStatus);
+router.get('/devotions',          devotions.list);
+router.post('/devotions',         uploadSingle('file'), devotions.create);
+router.put('/devotions/:id',      uploadSingle('file'), devotions.update);
+router.delete('/devotions/:id',   devotions.remove);
+
+// Site content (platform information)
+router.get('/content',            content.getAll);
+router.get('/content/:key',       content.getKey);
+router.put('/content/:key',       content.putKey);
+router.post('/content/:key/reset', content.resetKey);
 
 // Team management (super_admin only)
 const requireSuperAdmin = requireRole('super_admin');

@@ -8,6 +8,7 @@ const contactSchema = new mongoose.Schema({
   subject: { type: String, required: true },
   message: { type: String, required: true },
   status: { type: String, enum: ['new', 'read', 'replied'], default: 'new' },
+  clerkUserId: { type: String, index: true },
 }, { timestamps: true, collection: 'contacts', toJSON: cleanJSON });
 
 module.exports = mongoose.models.Contact || mongoose.model('Contact', contactSchema);

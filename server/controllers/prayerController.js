@@ -1,9 +1,13 @@
 const Prayer = require('../models/Prayer');
+const { getClerkUserId } = require('../utils/currentUser');
 
 exports.submitPrayer = async (req, res) => {
   try {
     const { name, email, request, isAnonymous, isPublic } = req.body;
-    const prayer = await Prayer.create({ name, email, request, isAnonymous, isPublic });
+    const prayer = await Prayer.create({
+      name, email, request, isAnonymous, isPublic,
+      clerkUserId: getClerkUserId(req),
+    });
     res.status(201).json({ success: true, message: 'Your prayer request has been received. Our team is praying with you.', data: prayer });
   } catch (error) {
     console.error(error);

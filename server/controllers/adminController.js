@@ -5,7 +5,9 @@ const Newsletter= require('../models/Newsletter');
 const NewsPost  = require('../models/NewsPost');
 const Resource  = require('../models/Resource');
 const Partner   = require('../models/Partner');
+const DevotionMaterial = require('../models/DevotionMaterial');
 const { clerkClient } = require('../middleware/clerkAuth');
+const { createNotification } = require('../utils/notify');
 
 const ROLES = ['super_admin', 'admin', 'editor', 'user'];
 
@@ -51,7 +53,7 @@ const listPage = async (Model, where, limit, offset, page) => {
 // ── DASHBOARD ────────────────────────────────────────────────
 exports.getDashboard = async (req, res) => {
   try {
-    const [contacts, prayers, volunteers, subscribers, newPosts, resources, partners, newContacts, recentPrayers, recentVolunteers, recentPartners] =
+    const [contacts, prayers, volunteers, subscribers, newPosts, resources, partners, devotions, newContacts, recentPrayers, recentVolunteers, recentPartners] =
       await Promise.all([
         Contact.countDocuments(),
         Prayer.countDocuments(),
@@ -60,6 +62,7 @@ exports.getDashboard = async (req, res) => {
         NewsPost.countDocuments({ status: 'published' }),
         Resource.countDocuments({ status: 'published' }),
         Partner.countDocuments(),
+        DevotionMaterial.countDocuments({ status: 'published' }),
         Contact.find().sort({ createdAt: -1 }).limit(5).select('name email subject status createdAt'),
         Prayer.find().sort({ createdAt: -1 }).limit(5).select('name request status isAnonymous createdAt'),
         Volunteer.find().sort({ createdAt: -1 }).limit(5).select('name email areas status createdAt'),
@@ -79,7 +82,7 @@ exports.getDashboard = async (req, res) => {
 
     res.json({
       success: true,
-      stats: { contacts, prayers, volunteers, subscribers, newPosts, resources, partners },
+      stats: { contacts, prayers, volunteers, subscribers, newPosts, resources, partners, devotions },
       recent: { contacts: newContacts, prayers: recentPrayers, volunteers: recentVolunteers, partners: recentPartners },
       team,
     });
@@ -253,6 +256,15 @@ exports.createNews = async (req, res) => {
       title, category, excerpt, content, author, status, featured, imageUrl, readTime,
       publishedAt: status === 'published' ? new Date() : null,
     });
+    if (post.status === 'published') {
+      await createNotification({
+        type: 'update',
+        title: post.title,
+        body: post.excerpt || 'A new update was published by EECMI.',
+        linkPath: `/news/${post.id}`,
+        refId: post.id,
+      });
+    }
     res.status(201).json({ success: true, data: post });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Failed to create post.' });
@@ -268,6 +280,15 @@ exports.updateNews = async (req, res) => {
       publishedAt: req.body.status === 'published' && wasNotPublished ? new Date() : item.publishedAt,
     });
     await item.save();
+    if (item.status === 'published' && wasNotPublished) {
+      await createNotification({
+        type: 'update',
+        title: item.title,
+        body: item.excerpt || 'A new update was published by EECMI.',
+        linkPath: `/news/${item.id}`,
+        refId: item.id,
+      });
+    }
     res.json({ success: true, data: item });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Update failed.' });

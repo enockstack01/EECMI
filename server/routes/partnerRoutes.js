@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const Partner = require('../models/Partner');
+const { getClerkUserId } = require('../utils/currentUser');
 
 router.post('/', async (req, res) => {
   try {
@@ -7,7 +8,10 @@ router.post('/', async (req, res) => {
     if (!name || !email)
       return res.status(400).json({ success: false, message: 'Name and email are required.' });
 
-    await Partner.create({ name, email, organization, partnerType, partnershipAreas, message });
+    await Partner.create({
+      name, email, organization, partnerType, partnershipAreas, message,
+      clerkUserId: getClerkUserId(req),
+    });
     res.status(201).json({
       success: true,
       message: 'Thank you for your interest in partnering with EECMI. Our team will reach out to you soon.',

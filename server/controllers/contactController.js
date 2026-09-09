@@ -1,9 +1,13 @@
 const Contact = require('../models/Contact');
+const { getClerkUserId } = require('../utils/currentUser');
 
 exports.submitContact = async (req, res) => {
   try {
     const { name, email, phone, subject, message } = req.body;
-    const contact = await Contact.create({ name, email, phone, subject, message });
+    const contact = await Contact.create({
+      name, email, phone, subject, message,
+      clerkUserId: getClerkUserId(req),
+    });
     res.status(201).json({ success: true, message: 'Message received. We will respond shortly.', data: contact });
   } catch (error) {
     console.error(error);

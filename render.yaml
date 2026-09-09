@@ -43,6 +43,12 @@ services:
       - key: SUPER_ADMIN_EMAILS
         sync: false
 
+      # Cloudinary — stores admin-uploaded devotion files (PDF/audio/video).
+      # Copy the full "API environment variable" string from your Cloudinary
+      # dashboard. Optional: without it, admins paste external file URLs instead.
+      - key: CLOUDINARY_URL
+        sync: false
+
       # Build-time only: baked into the React bundle by `npm run build --prefix client`.
       - key: REACT_APP_CLERK_PUBLISHABLE_KEY
         sync: false

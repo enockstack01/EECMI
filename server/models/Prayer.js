@@ -9,6 +9,7 @@ const prayerSchema = new mongoose.Schema({
   isPublic: { type: Boolean, default: false },
   prayerCount: { type: Number, default: 0 },
   status: { type: String, enum: ['pending', 'prayed', 'answered'], default: 'pending' },
+  clerkUserId: { type: String, index: true },
 }, { timestamps: true, collection: 'prayers', toJSON: cleanJSON });
 
 module.exports = mongoose.models.Prayer || mongoose.model('Prayer', prayerSchema);

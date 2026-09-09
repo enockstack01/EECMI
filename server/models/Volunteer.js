@@ -11,6 +11,7 @@ const volunteerSchema = new mongoose.Schema({
   availability: { type: String },
   motivation: { type: String },
   status: { type: String, enum: ['pending', 'active', 'inactive'], default: 'pending' },
+  clerkUserId: { type: String, index: true },
 }, { timestamps: true, collection: 'volunteers', toJSON: cleanJSON });
 
 module.exports = mongoose.models.Volunteer || mongoose.model('Volunteer', volunteerSchema);

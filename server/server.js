@@ -8,6 +8,7 @@ require('dotenv').config();
 
 const { connectDB } = require('./config/db');
 const { clerkMiddleware } = require('./middleware/clerkAuth');
+const { seedSiteContent } = require('./config/seedContent');
 
 // Import models so Mongoose registers their schemas
 require('./models/Contact');
@@ -17,6 +18,10 @@ require('./models/Newsletter');
 require('./models/NewsPost');
 require('./models/Resource');
 require('./models/Partner');
+require('./models/DevotionMaterial');
+require('./models/Notification');
+require('./models/UserProfile');
+require('./models/SiteContent');
 
 const app = express();
 
@@ -35,10 +40,13 @@ app.use(
       directives: {
         ...helmet.contentSecurityPolicy.getDefaultDirectives(),
         'script-src': ["'self'", 'https://*.clerk.accounts.dev', 'https://*.clerk.com', 'https://challenges.cloudflare.com'],
-        'connect-src': ["'self'", 'https://*.clerk.accounts.dev', 'https://*.clerk.com', 'https://api.clerk.com'],
-        'img-src': ["'self'", 'data:', 'https://img.clerk.com'],
-        // https://www.google.com is for the embedded Google Maps iframe on the Contact page.
-        'frame-src': ["'self'", 'https://*.clerk.accounts.dev', 'https://*.clerk.com', 'https://challenges.cloudflare.com', 'https://www.google.com'],
+        'connect-src': ["'self'", 'https://*.clerk.accounts.dev', 'https://*.clerk.com', 'https://api.clerk.com', 'https://res.cloudinary.com'],
+        'img-src': ["'self'", 'data:', 'blob:', 'https://img.clerk.com', 'https://res.cloudinary.com'],
+        // Cloudinary serves uploaded devotion audio/video.
+        'media-src': ["'self'", 'blob:', 'https://res.cloudinary.com'],
+        // https://www.google.com is for the embedded Google Maps iframe on the Contact page;
+        // res.cloudinary.com renders uploaded devotion PDFs in an <iframe>.
+        'frame-src': ["'self'", 'https://*.clerk.accounts.dev', 'https://*.clerk.com', 'https://challenges.cloudflare.com', 'https://www.google.com', 'https://res.cloudinary.com'],
         'worker-src': ["'self'", 'blob:'],
       },
     },
@@ -58,6 +66,11 @@ app.use('/api/volunteer',  require('./routes/volunteerRoutes'));
 app.use('/api/newsletter', require('./routes/newsletterRoutes'));
 app.use('/api/partner',    require('./routes/partnerRoutes'));
 app.use('/api/resources',  require('./routes/resourceRoutes'));
+app.use('/api/devotions',  require('./routes/devotionRoutes'));
+app.use('/api/news',       require('./routes/newsRoutes'));
+app.use('/api/content',    require('./routes/contentRoutes'));
+app.use('/api/notifications', require('./routes/notificationRoutes'));
+app.use('/api/me',         require('./routes/meRoutes'));
 app.use('/api/auth',       require('./routes/authRoutes'));
 app.use('/api/admin',      require('./routes/adminRoutes'));
 
@@ -84,8 +97,13 @@ const start = async () => {
     await connectDB();
     console.log('MongoDB connected successfully.');
 
+    await seedSiteContent();
+
     if (!process.env.CLERK_SECRET_KEY) {
       console.warn('CLERK_SECRET_KEY is not set — authentication will fail. Check your .env file.');
+    }
+    if (!process.env.CLOUDINARY_URL && !process.env.CLOUDINARY_CLOUD_NAME) {
+      console.warn('CLOUDINARY_URL is not set — devotion file uploads are disabled (admin can still paste external URLs).');
     }
 
     app.listen(PORT, () =>
