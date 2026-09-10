@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  FiMail, FiHeart, FiUsers, FiLink, FiSend, FiFileText, FiBookOpen, FiShield, FiSearch, FiX,
+  FiMail, FiHeart, FiUsers, FiLink, FiSend, FiFileText, FiBookOpen, FiBook, FiShield, FiSearch, FiX,
 } from 'react-icons/fi';
 import { useAdminAuth } from '../context/AdminAuthContext';
 
@@ -11,9 +11,10 @@ const SEARCH_SECTIONS = [
   { key: 'volunteers',  title: 'Volunteers',  link: '/admin/volunteers',  endpoint: '/api/admin/volunteers',  row: v => `${v.name} — ${v.email}` },
   { key: 'subscribers', title: 'Subscribers', link: '/admin/subscribers', endpoint: '/api/admin/subscribers', row: s => s.email },
   { key: 'news',        title: 'News',        link: '/admin/news',        endpoint: '/api/admin/news',        row: n => n.title },
+  { key: 'devotions',   title: 'Devotions',   link: '/admin/devotions',   endpoint: '/api/admin/devotions',   row: d => d.series ? `${d.title} — ${d.series}` : d.title },
   { key: 'resources',   title: 'Resources',   link: '/admin/resources',   endpoint: '/api/admin/resources',   row: r => r.title },
   { key: 'partners',    title: 'Partners',    link: '/admin/partners',    endpoint: '/api/admin/partners',    row: p => `${p.name} — ${p.organization || 'Individual'}` },
-  { key: 'team',        title: 'Team',        link: '/admin/team',        endpoint: '/api/admin/team',        row: t => `${t.name} — ${t.email}` },
+  { key: 'team',        title: 'Team',        link: '/admin/team',        endpoint: '/api/admin/team',        row: t => `${t.name} — ${t.email}`, superAdminOnly: true },
 ];
 
 export default function Dashboard() {
@@ -35,14 +36,15 @@ export default function Dashboard() {
   const runSearch = useCallback((term) => {
     if (!term) { setResults(null); return; }
     setSearching(true);
-    Promise.all(SEARCH_SECTIONS.map(section =>
+    const sections = SEARCH_SECTIONS.filter(s => !s.superAdminOnly || isSuperAdmin);
+    Promise.all(sections.map(section =>
       authFetch(`${section.endpoint}?search=${encodeURIComponent(term)}&limit=5`)
         .then(r => r.json())
         .then(d => ({ ...section, items: d.success ? d.data.slice(0, 5) : [] }))
         .catch(() => ({ ...section, items: [] }))
     )).then(sections => setResults(sections.filter(s => s.items.length > 0)))
       .finally(() => setSearching(false));
-  }, [authFetch]);
+  }, [authFetch, isSuperAdmin]);
 
   useEffect(() => {
     const t = setTimeout(() => runSearch(query.trim()), 350);
@@ -54,7 +56,7 @@ export default function Dashboard() {
       <div>
         <h2 className="admin-page-title">Dashboard</h2>
         <div className="stats-grid">
-          {Array.from({ length: 7 }).map((_, i) => <div key={i} className="stat-card-skeleton" />)}
+          {Array.from({ length: 8 }).map((_, i) => <div key={i} className="stat-card-skeleton" />)}
         </div>
       </div>
     );
@@ -70,6 +72,7 @@ export default function Dashboard() {
     { label: 'Partners',          value: stats.partners,    icon: FiLink,     color: '#2b6cb0' },
     { label: 'Subscribers',       value: stats.subscribers, icon: FiSend,     color: '#0d9488' },
     { label: 'Published News',    value: stats.newPosts,    icon: FiFileText, color: '#b45309' },
+    { label: 'Devotions',         value: stats.devotions,   icon: FiBook,     color: '#7c3aed' },
     { label: 'Resources',         value: stats.resources,   icon: FiBookOpen, color: '#be185d' },
   ];
 
@@ -183,6 +186,22 @@ export default function Dashboard() {
                 <td><span className={`badge badge-${p.status}`}>{p.status}</span></td>
               </tr>
             )} headers={['Name', 'Organization', 'Status']} link="/admin/partners" />
+
+            <RecentList title="Recent News" items={recent.news || []} renderRow={n => (
+              <tr key={n.id}>
+                <td>{n.title}</td>
+                <td>{n.category || '—'}</td>
+                <td><span className={`badge badge-${n.status}`}>{n.status}</span></td>
+              </tr>
+            )} headers={['Title', 'Category', 'Status']} link="/admin/news" />
+
+            <RecentList title="Recent Devotions" items={recent.devotions || []} renderRow={d => (
+              <tr key={d.id}>
+                <td>{d.title}</td>
+                <td>{d.series || '—'}</td>
+                <td><span className={`badge badge-${d.status}`}>{d.status}</span></td>
+              </tr>
+            )} headers={['Title', 'Series', 'Status']} link="/admin/devotions" />
           </div>
         </>
       )}

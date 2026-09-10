@@ -53,7 +53,7 @@ const listPage = async (Model, where, limit, offset, page) => {
 // ── DASHBOARD ────────────────────────────────────────────────
 exports.getDashboard = async (req, res) => {
   try {
-    const [contacts, prayers, volunteers, subscribers, newPosts, resources, partners, devotions, newContacts, recentPrayers, recentVolunteers, recentPartners] =
+    const [contacts, prayers, volunteers, subscribers, newPosts, resources, partners, devotions, newContacts, recentPrayers, recentVolunteers, recentPartners, recentNews, recentDevotions] =
       await Promise.all([
         Contact.countDocuments(),
         Prayer.countDocuments(),
@@ -67,6 +67,8 @@ exports.getDashboard = async (req, res) => {
         Prayer.find().sort({ createdAt: -1 }).limit(5).select('name request status isAnonymous createdAt'),
         Volunteer.find().sort({ createdAt: -1 }).limit(5).select('name email areas status createdAt'),
         Partner.find().sort({ createdAt: -1 }).limit(5).select('name email organization partnerType status createdAt'),
+        NewsPost.find().sort({ createdAt: -1 }).limit(5).select('title category status publishedAt createdAt'),
+        DevotionMaterial.find().sort({ createdAt: -1 }).limit(5).select('title series status publishedAt createdAt'),
       ]);
 
     let team = null;
@@ -83,7 +85,7 @@ exports.getDashboard = async (req, res) => {
     res.json({
       success: true,
       stats: { contacts, prayers, volunteers, subscribers, newPosts, resources, partners, devotions },
-      recent: { contacts: newContacts, prayers: recentPrayers, volunteers: recentVolunteers, partners: recentPartners },
+      recent: { contacts: newContacts, prayers: recentPrayers, volunteers: recentVolunteers, partners: recentPartners, news: recentNews, devotions: recentDevotions },
       team,
     });
   } catch (err) {
@@ -354,8 +356,9 @@ exports.deleteResource = async (req, res) => {
 // ── TEAM (Clerk-backed, super_admin only) ─────────────────────
 exports.getTeam = async (req, res) => {
   try {
+    const limit = Math.min(200, Math.max(1, parseInt(req.query.limit) || 200));
     const { data: users } = await clerkClient.users.getUserList({
-      limit: 200,
+      limit,
       orderBy: '-created_at',
       ...(req.query.search ? { query: req.query.search } : {}),
     });
