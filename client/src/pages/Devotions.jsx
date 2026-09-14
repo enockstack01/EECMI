@@ -2,9 +2,9 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import axios from 'axios';
-import { FiArrowRight, FiBookOpen, FiHeadphones, FiFileText, FiVideo, FiLink } from 'react-icons/fi';
+import { FiArrowRight, FiBookOpen, FiHeadphones, FiFileText, FiFile, FiVideo, FiLink } from 'react-icons/fi';
 
-const TYPE_ICON = { text: FiBookOpen, pdf: FiFileText, audio: FiHeadphones, video: FiVideo, link: FiLink };
+const TYPE_ICON = { text: FiBookOpen, pdf: FiFileText, document: FiFile, audio: FiHeadphones, video: FiVideo, link: FiLink };
 
 export default function Devotions() {
   const [items, setItems] = useState([]);

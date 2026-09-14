@@ -87,7 +87,7 @@ export default function NewsPage() {
                       <td><span className={`badge badge-${row.status}`}>{row.status}</span></td>
                       <td><span className={`badge badge-${row.featured}`}>{row.featured ? 'Yes' : 'No'}</span></td>
                       <td style={{ whiteSpace: 'nowrap' }}>{new Date(row.createdAt).toLocaleDateString()}</td>
-                      <td style={{ display: 'flex', gap: 6 }}>
+                      <td className="admin-actions-cell">
                         <button className="btn-sm btn-sm-ghost" onClick={() => openEdit(row)}>Edit</button>
                         <button className="btn-sm btn-sm-danger" onClick={() => del(row.id)}>Delete</button>
                       </td>
@@ -114,7 +114,7 @@ export default function NewsPage() {
                 <label>Title *</label>
                 <input required value={form.title} onChange={f('title')} />
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div className="form-grid-2">
                 <div className="form-group">
                   <label>Category</label>
                   <select value={form.category} onChange={f('category')}>
@@ -135,7 +135,7 @@ export default function NewsPage() {
                 <label>Content</label>
                 <textarea rows={6} value={form.content} onChange={f('content')} />
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div className="form-grid-2">
                 <div className="form-group">
                   <label>Status</label>
                   <select value={form.status} onChange={f('status')}>

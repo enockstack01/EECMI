@@ -5,8 +5,15 @@ const EMPTY_FORM = {
   title: '', series: 'Daily Devotion', scriptureRef: '', description: '', body: '',
   type: 'text', externalUrl: '', coverImageUrl: '', author: 'EECMI Team', status: 'draft',
 };
-const TYPES = ['text', 'pdf', 'audio', 'video', 'link'];
+const TYPES = ['text', 'pdf', 'document', 'audio', 'video', 'link'];
 const STATUS_OPTIONS = ['draft', 'published'];
+const ACCEPT_FOR_TYPE = {
+  pdf: '.pdf,application/pdf',
+  document: '.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt',
+  audio: 'audio/*',
+  video: 'video/*',
+  link: '*',
+};
 
 export default function DevotionsPage() {
   const { authFetch, authUpload } = useAdminAuth();
@@ -120,7 +127,7 @@ export default function DevotionsPage() {
                       <td>{row.type}</td>
                       <td><span className={`badge badge-${row.status}`}>{row.status}</span></td>
                       <td>{row.views || 0}</td>
-                      <td style={{ display: 'flex', gap: 6 }}>
+                      <td className="admin-actions-cell">
                         <button className="btn-sm btn-sm-ghost" onClick={() => togglePublish(row)}>
                           {row.status === 'published' ? 'Unpublish' : 'Publish'}
                         </button>
@@ -149,7 +156,7 @@ export default function DevotionsPage() {
                 <label>Title *</label>
                 <input required value={form.title} onChange={f('title')} />
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div className="form-grid-2">
                 <div className="form-group">
                   <label>Series</label>
                   <input value={form.series} onChange={f('series')} placeholder="e.g. Daily Bread" />
@@ -176,9 +183,12 @@ export default function DevotionsPage() {
               {form.type !== 'text' && (
                 <>
                   <div className="form-group">
-                    <label>Upload file {uploadsOn ? '' : '(disabled)'}</label>
-                    <input type="file" disabled={!uploadsOn} accept=".pdf,audio/*,video/*,image/*"
+                    <label>Upload {form.type === 'document' ? 'document' : 'file'} {uploadsOn ? '' : '(disabled)'}</label>
+                    <input type="file" disabled={!uploadsOn} accept={ACCEPT_FOR_TYPE[form.type] || '*'}
                       onChange={(e) => setFile(e.target.files?.[0] || null)} />
+                    {form.type === 'document' && (
+                      <small style={{ color: 'var(--gray-500)' }}>PDF, Word, PowerPoint, Excel or text file.</small>
+                    )}
                     {modal !== 'create' && modal.fileUrl && !file && (
                       <small style={{ color: 'var(--gray-500)' }}>Current: <a href={modal.fileUrl} target="_blank" rel="noreferrer">file</a> — choose a new one to replace.</small>
                     )}
@@ -193,7 +203,7 @@ export default function DevotionsPage() {
                 <label>Cover image URL (optional)</label>
                 <input value={form.coverImageUrl} onChange={f('coverImageUrl')} placeholder="https://…" />
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div className="form-grid-2">
                 <div className="form-group">
                   <label>Author</label>
                   <input value={form.author} onChange={f('author')} />

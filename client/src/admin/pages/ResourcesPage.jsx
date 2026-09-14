@@ -86,7 +86,7 @@ export default function ResourcesPage() {
                       <td>{row.year || '—'}</td>
                       <td><span className={`badge badge-${row.status}`}>{row.status}</span></td>
                       <td>{row.downloads || 0}</td>
-                      <td style={{ display: 'flex', gap: 6 }}>
+                      <td className="admin-actions-cell">
                         <button className="btn-sm btn-sm-ghost" onClick={() => openEdit(row)}>Edit</button>
                         <button className="btn-sm btn-sm-danger" onClick={() => del(row.id)}>Delete</button>
                       </td>
@@ -113,7 +113,7 @@ export default function ResourcesPage() {
                 <label>Title *</label>
                 <input required value={form.title} onChange={f('title')} />
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div className="form-grid-2">
                 <div className="form-group">
                   <label>Type</label>
                   <select value={form.type} onChange={f('type')}>

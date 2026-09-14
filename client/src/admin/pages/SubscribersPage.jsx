@@ -63,7 +63,7 @@ export default function SubscribersPage() {
                       <td>{row.name || '—'}</td>
                       <td><span className={`badge badge-${row.isActive ? 'active' : 'inactive'}`}>{row.isActive ? 'Active' : 'Inactive'}</span></td>
                       <td style={{ whiteSpace: 'nowrap' }}>{new Date(row.createdAt).toLocaleDateString()}</td>
-                      <td style={{ display: 'flex', gap: 6 }}>
+                      <td className="admin-actions-cell">
                         <button className="btn-sm btn-sm-ghost" onClick={() => toggle(row.id)}>
                           {row.isActive ? 'Deactivate' : 'Activate'}
                         </button>
