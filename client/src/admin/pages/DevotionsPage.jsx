@@ -5,14 +5,20 @@ const EMPTY_FORM = {
   title: '', series: 'Daily Devotion', scriptureRef: '', description: '', body: '',
   type: 'text', externalUrl: '', coverImageUrl: '', author: 'EECMI Team', status: 'draft',
 };
-const TYPES = ['text', 'pdf', 'document', 'audio', 'video', 'link'];
+const TYPES = ['text', 'pdf', 'document', 'image', 'audio', 'video', 'link'];
 const STATUS_OPTIONS = ['draft', 'published'];
 const ACCEPT_FOR_TYPE = {
   pdf: '.pdf,application/pdf',
   document: '.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt',
+  image: 'image/*',
   audio: 'audio/*',
   video: 'video/*',
   link: '*',
+};
+const UPLOAD_LABEL = { document: 'document', image: 'image' };
+const UPLOAD_HINT = {
+  document: 'PDF, Word, PowerPoint, Excel or text file.',
+  image: 'JPEG, PNG or WEBP image.',
 };
 
 export default function DevotionsPage() {
@@ -183,11 +189,11 @@ export default function DevotionsPage() {
               {form.type !== 'text' && (
                 <>
                   <div className="form-group">
-                    <label>Upload {form.type === 'document' ? 'document' : 'file'} {uploadsOn ? '' : '(disabled)'}</label>
+                    <label>Upload {UPLOAD_LABEL[form.type] || 'file'} {uploadsOn ? '' : '(disabled)'}</label>
                     <input type="file" disabled={!uploadsOn} accept={ACCEPT_FOR_TYPE[form.type] || '*'}
                       onChange={(e) => setFile(e.target.files?.[0] || null)} />
-                    {form.type === 'document' && (
-                      <small style={{ color: 'var(--gray-500)' }}>PDF, Word, PowerPoint, Excel or text file.</small>
+                    {UPLOAD_HINT[form.type] && (
+                      <small style={{ color: 'var(--gray-500)' }}>{UPLOAD_HINT[form.type]}</small>
                     )}
                     {modal !== 'create' && modal.fileUrl && !file && (
                       <small style={{ color: 'var(--gray-500)' }}>Current: <a href={modal.fileUrl} target="_blank" rel="noreferrer">file</a> — choose a new one to replace.</small>

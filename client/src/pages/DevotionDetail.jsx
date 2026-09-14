@@ -70,6 +70,10 @@ export default function DevotionDetail() {
       <section style={{ padding: '3.5rem 0 7rem', background: 'var(--cream)' }}>
         <div className="container" style={{ maxWidth: '760px' }}>
           <div style={{ background: 'white', borderRadius: '20px', padding: '2.5rem', boxShadow: '0 20px 60px rgba(0,0,0,0.06)' }}>
+            {devotion.coverImageUrl && (
+              <img src={devotion.coverImageUrl} alt="" style={{ width: '100%', maxHeight: 360, objectFit: 'cover', borderRadius: 14, marginBottom: '1.75rem', display: 'block' }} />
+            )}
+
             {isSignedIn && (
               <button onClick={toggleSave} disabled={savingBookmark} style={{
                 display: 'inline-flex', alignItems: 'center', gap: '0.4rem', marginBottom: '1.5rem',
@@ -91,6 +95,10 @@ export default function DevotionDetail() {
 
             {devotion.type === 'audio' && fileUrl && (
               <audio controls src={fileUrl} style={{ width: '100%', marginTop: '1.5rem' }} />
+            )}
+
+            {devotion.type === 'image' && fileUrl && (
+              <img src={fileUrl} alt={devotion.title} style={{ width: '100%', borderRadius: 12, marginTop: '1.5rem', display: 'block' }} />
             )}
 
             {devotion.type === 'video' && fileUrl && (

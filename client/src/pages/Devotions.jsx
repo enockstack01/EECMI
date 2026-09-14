@@ -2,9 +2,9 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import axios from 'axios';
-import { FiArrowRight, FiBookOpen, FiHeadphones, FiFileText, FiFile, FiVideo, FiLink } from 'react-icons/fi';
+import { FiArrowRight, FiBookOpen, FiHeadphones, FiFileText, FiFile, FiImage, FiVideo, FiLink } from 'react-icons/fi';
 
-const TYPE_ICON = { text: FiBookOpen, pdf: FiFileText, document: FiFile, audio: FiHeadphones, video: FiVideo, link: FiLink };
+const TYPE_ICON = { text: FiBookOpen, pdf: FiFileText, document: FiFile, image: FiImage, audio: FiHeadphones, video: FiVideo, link: FiLink };
 
 export default function Devotions() {
   const [items, setItems] = useState([]);
@@ -69,27 +69,35 @@ export default function Devotions() {
             </div>
           )}
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.75rem' }}>
             {filtered.map((d, i) => {
               const Icon = TYPE_ICON[d.type] || FiBookOpen;
+              const imageUrl = (d.type === 'image' && d.fileUrl) || d.coverImageUrl;
               return (
                 <motion.article key={d.id}
                   initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.05, duration: 0.4 }}
-                  style={{ background: 'white', borderRadius: '16px', overflow: 'hidden', border: '1px solid var(--gray-100)', boxShadow: 'var(--shadow-sm)' }}
-                  whileHover={{ y: -4, boxShadow: 'var(--shadow-lg)' }}
+                  style={{ background: 'white', borderRadius: '18px', overflow: 'hidden', border: '1px solid var(--gray-100)', boxShadow: 'var(--shadow-sm)', height: '100%' }}
+                  whileHover={{ y: -5, boxShadow: 'var(--shadow-lg)' }}
                 >
-                  <Link to={`/devotions/${d.id}`} style={{ display: 'block', color: 'inherit' }}>
-                    <div style={{ height: '6px', background: 'var(--forest-green)' }} />
-                    <div style={{ padding: '1.75rem' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                        <span style={{ width: 34, height: 34, borderRadius: 9, background: 'rgba(45,106,79,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                          <Icon size={16} style={{ color: 'var(--forest-green)' }} />
-                        </span>
-                        <span style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.05em', color: 'var(--forest-green)', textTransform: 'uppercase' }}>
-                          {d.series || 'Devotion'}
-                        </span>
-                      </div>
+                  <Link to={`/devotions/${d.id}`} style={{ display: 'flex', flexDirection: 'column', height: '100%', color: 'inherit' }}>
+                    <div style={{ position: 'relative', aspectRatio: '16 / 10', flexShrink: 0, overflow: 'hidden', background: imageUrl ? 'var(--gray-100)' : 'linear-gradient(135deg, var(--forest-green) 0%, var(--dark-green) 100%)' }}>
+                      {imageUrl ? (
+                        <img src={imageUrl} alt="" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                      ) : (
+                        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <Icon size={36} style={{ color: 'rgba(255,255,255,0.85)' }} />
+                        </div>
+                      )}
+                      <span style={{
+                        position: 'absolute', top: 10, left: 10, display: 'flex', alignItems: 'center', gap: '0.35rem',
+                        background: 'rgba(0,0,0,0.55)', color: '#fff', fontSize: '0.65rem', fontWeight: 700,
+                        letterSpacing: '0.05em', textTransform: 'uppercase', padding: '0.3rem 0.65rem', borderRadius: '999px',
+                      }}>
+                        <Icon size={11} /> {d.series || 'Devotion'}
+                      </span>
+                    </div>
+                    <div style={{ padding: '1.5rem 1.75rem 1.75rem', display: 'flex', flexDirection: 'column', flex: 1 }}>
                       <h3 style={{ fontFamily: 'var(--font-serif)', fontWeight: 700, fontSize: '1.05rem', color: 'var(--gray-900)', marginBottom: '0.5rem', lineHeight: 1.4 }}>
                         {d.title}
                       </h3>
@@ -99,7 +107,7 @@ export default function Devotions() {
                       {d.description && (
                         <p style={{ color: 'var(--gray-500)', fontSize: '0.875rem', lineHeight: 1.7, marginBottom: '1.25rem' }}>{d.description}</p>
                       )}
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: 'var(--forest-green)', fontSize: '0.8rem', fontWeight: 600 }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: 'var(--forest-green)', fontSize: '0.8rem', fontWeight: 600, marginTop: 'auto' }}>
                         Open <FiArrowRight size={13} />
                       </span>
                     </div>

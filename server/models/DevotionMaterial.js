@@ -7,7 +7,7 @@ const devotionSchema = new mongoose.Schema({
   description: { type: String },
   scriptureRef: { type: String },
   body: { type: String },
-  type: { type: String, enum: ['text', 'pdf', 'document', 'audio', 'video', 'link'], default: 'text' },
+  type: { type: String, enum: ['text', 'pdf', 'document', 'image', 'audio', 'video', 'link'], default: 'text' },
   fileUrl: { type: String },
   externalUrl: { type: String },
   coverImageUrl: { type: String },
