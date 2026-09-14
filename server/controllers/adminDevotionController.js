@@ -26,7 +26,7 @@ async function maybeUpload(req) {
     err.status = 400;
     throw err;
   }
-  const { url } = await uploadBuffer(req.file.buffer, 'eecmi/devotions', resourceTypeFor(req.file.mimetype));
+  const { url } = await uploadBuffer(req.file.buffer, 'EECMI Devotional materials', resourceTypeFor(req.file.mimetype));
   return url;
 }
 
