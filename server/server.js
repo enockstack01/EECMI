@@ -25,6 +25,12 @@ require('./models/SiteContent');
 
 const app = express();
 
+// Render sits behind a reverse proxy — without this, Express can't see each
+// visitor's real IP (every request looks like it comes from Render's proxy),
+// which made the rate limiter below treat the entire site's traffic as a
+// single client and throttle everyone together.
+app.set('trust proxy', 1);
+
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
