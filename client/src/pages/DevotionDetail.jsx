@@ -46,6 +46,11 @@ export default function DevotionDetail() {
   }
 
   const fileUrl = devotion.fileUrl || devotion.externalUrl;
+  // Cloudinary's fl_attachment flag forces a real download (Content-Disposition:
+  // attachment) instead of the browser just navigating to/previewing the file.
+  const downloadUrl = fileUrl && fileUrl.includes('res.cloudinary.com') && fileUrl.includes('/upload/')
+    ? fileUrl.replace('/upload/', '/upload/fl_attachment/')
+    : fileUrl;
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4 }}>
@@ -70,7 +75,7 @@ export default function DevotionDetail() {
       <section style={{ padding: '3.5rem 0 7rem', background: 'var(--cream)' }}>
         <div className="container" style={{ maxWidth: '760px' }}>
           <div style={{ background: 'white', borderRadius: '20px', padding: '2.5rem', boxShadow: '0 20px 60px rgba(0,0,0,0.06)' }}>
-            {devotion.coverImageUrl && (
+            {devotion.coverImageUrl && devotion.type !== 'image' && (
               <img src={devotion.coverImageUrl} alt="" style={{ width: '100%', maxHeight: 360, objectFit: 'cover', borderRadius: 14, marginBottom: '1.75rem', display: 'block' }} />
             )}
 
@@ -98,7 +103,15 @@ export default function DevotionDetail() {
             )}
 
             {devotion.type === 'image' && fileUrl && (
-              <img src={fileUrl} alt={devotion.title} style={{ width: '100%', borderRadius: 12, marginTop: '1.5rem', display: 'block' }} />
+              <div style={{
+                marginTop: '1.5rem', background: 'var(--gray-50)', border: '1px solid var(--gray-100)',
+                borderRadius: 16, padding: '1rem', display: 'flex', justifyContent: 'center',
+              }}>
+                <img src={fileUrl} alt={devotion.title} style={{
+                  maxWidth: '100%', maxHeight: '80vh', width: 'auto', height: 'auto',
+                  objectFit: 'contain', borderRadius: 10, display: 'block', boxShadow: '0 10px 30px rgba(0,0,0,0.08)',
+                }} />
+              </div>
             )}
 
             {devotion.type === 'video' && fileUrl && (
@@ -112,7 +125,8 @@ export default function DevotionDetail() {
             )}
 
             {fileUrl && (
-              <a href={fileUrl} target="_blank" rel="noreferrer"
+              <a href={devotion.type === 'link' ? fileUrl : downloadUrl} target="_blank" rel="noreferrer"
+                download={devotion.type !== 'link'}
                 onClick={() => axios.post(`/api/devotions/${devotion.id}/download`).catch(() => {})}
                 className="btn btn-primary" style={{ marginTop: '1.75rem', fontSize: '0.9rem' }}>
                 {devotion.type === 'link' ? <><FiExternalLink size={15} /> Open</> : <><FiDownload size={15} /> Download</>}
